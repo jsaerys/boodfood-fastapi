@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración - BoodFood{% endblock %}
+
+{% block content %}
+<div class="panel-container">
+    <div class="panel-header">
+        <h1>⚙️ Panel de Administración</h1>
+        <p>Gestión completa del restaurante</p>
+    </div>
+
+    <div class="panel-content">
+        <div class="tabs">
+            <button class="tab-button active" onclick="cambiarTab('inventario')">Inventario</button>
+            <button class="tab-button" onclick="cambiarTab('menu')">Menú</button>
+            <button class="tab-button" onclick="cambiarTab('usuarios')">Usuarios</button>
+            <button class="tab-button" onclick="cambiarTab('mesas')">Mesas</button>
+        </div>
+
+        <!-- Tab Inventario -->
+        <div id="tab-inventario" class="tab-content active">
+            <div class="section-header">
+                <h2>Gestión de Inventario</h2>
+                <button onclick="mostrarFormularioInventario()" class="btn btn-primary">+ Nuevo Item</button>
+            </div>
+            
+            <div id="inventario-list" class="data-table">
+                <!-- El inventario se cargará aquí -->
+            </div>
+            
+            <!-- Modal para agregar/editar inventario -->
+            <div id="modal-inventario" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="cerrarModal('modal-inventario')">&times;</span>
+                    <h3>Nuevo Item de Inventario</h3>
+                    <form id="form-inventario" onsubmit="guardarInventario(event)">
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="text" name="nombre" required class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <textarea name="descripcion" class="form-control"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Cantidad</label>
+                                <input type="number" name="cantidad" step="0.01" required class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Unidad</label>
+                                <input type="text" name="unidad" required class="form-control" placeholder="kg, litros, unidades">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Precio Unitario</label>
+                                <input type="number" name="precio_unitario" step="0.01" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Mínimo</label>
+                                <input type="number" name="stock_minimo" step="0.01" class="form-control">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Menú -->
+        <div id="tab-menu" class="tab-content">
+            <div class="section-header">
+                <h2>Gestión de Menú</h2>
+                <button onclick="mostrarFormularioMenu()" class="btn btn-primary">+ Nuevo Plato</button>
+            </div>
+            
+            <div id="menu-list" class="data-table">
+                <!-- El menú se cargará aquí -->
+            </div>
+        </div>
+
+        <!-- Tab Usuarios -->
+        <div id="tab-usuarios" class="tab-content">
+            <h2>Gestión de Usuarios</h2>
+            <div id="usuarios-list" class="data-table">
+                <!-- Los usuarios se cargarán aquí -->
+            </div>
+        </div>
+
+        <!-- Tab Mesas -->
+        <div id="tab-mesas" class="tab-content">
+            <div class="section-header">
+                <h2>Gestión de Mesas</h2>
+                <button onclick="mostrarFormularioMesa()" class="btn btn-primary">+ Nueva Mesa</button>
+            </div>
+            
+            <div id="mesas-list" class="data-table">
+                <!-- Las mesas se cargarán aquí -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cambiarTab(tab) {
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    
+    // Cargar datos correspondientes
+    if (tab === 'inventario') cargarInventario();
+    else if (tab === 'menu') cargarMenuAdmin();
+    else if (tab === 'usuarios') cargarUsuarios();
+    else if (tab === 'mesas') cargarMesas();
+}
+
+// ===== INVENTARIO =====
+function cargarInventario() {
+    fetch('/admin/api/inventario')
+        .then(response => response.json())
+        .then(items => {
+            const container = document.getElementById('inventario-list');
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Cantidad</th>
+                            <th>Unidad</th>
+                            <th>Stock Mínimo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${items.map(item => `
+                            <tr class="${item.cantidad <= item.stock_minimo ? 'low-stock' : ''}">
+                                <td>${item.nombre}</td>
+                                <td>${item.cantidad}</td>
+                                <td>${item.unidad}</td>
+                                <td>${item.stock_minimo}</td>
+                                <td>
+                                    <button onclick="registrarEntrada(${item.id})" class="btn btn-sm btn-success">Entrada</button>
+                                    <button onclick="registrarSalida(${item.id})" class="btn btn-sm btn-warning">Salida</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        });
+}
+
+function mostrarFormularioInventario() {
+    document.getElementById('modal-inventario').style.display = 'block';
+}
+
+function cerrarModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function guardarInventario(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData);
+    
+    fetch('/admin/api/inventario/crear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert('Item creado exitosamente');
+            cerrarModal('modal-inventario');
+            event.target.reset();
+            cargarInventario();
+        }
+    });
+}
+
+function registrarEntrada(itemId) {
+    const cantidad = prompt('Cantidad a ingresar:');
+    if (cantidad) {
+        registrarMovimiento(itemId, 'entrada', cantidad);
+    }
+}
+
+function registrarSalida(itemId) {
+    const cantidad = prompt('Cantidad a retirar:');
+    if (cantidad) {
+        registrarMovimiento(itemId, 'salida', cantidad);
+    }
+}
+
+function registrarMovimiento(itemId, tipo, cantidad) {
+    fetch(`/admin/api/inventario/${itemId}/movimiento`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo, cantidad })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert('Movimiento registrado');
+            cargarInventario();
+        }
+    });
+}
+
+// ===== MENÚ =====
+function cargarMenuAdmin() {
+    fetch('/api/menu')
+        .then(response => response.json())
+        .then(categorias => {
+            const container = document.getElementById('menu-list');
+            container.innerHTML = categorias.map(cat => `
+                <div class="menu-category-admin">
+                    <h3>${cat.categoria.nombre}</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Tipo</th>
+                                <th>Disponible</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cat.items.map(item => `
+                                <tr>
+                                    <td>${item.nombre}</td>
+                                    <td>$${item.precio.toFixed(2)}</td>
+                                    <td>${item.tipo}</td>
+                                    <td>${item.disponible ? '✅' : '❌'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `).join('');
+        });
+}
+
+function mostrarFormularioMenu() {
+    alert('Funcionalidad de agregar plato en desarrollo');
+}
+
+// ===== USUARIOS =====
+function cargarUsuarios() {
+    fetch('/admin/api/usuarios')
+        .then(response => response.json())
+        .then(usuarios => {
+            const container = document.getElementById('usuarios-list');
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Activo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${usuarios.map(usuario => `
+                            <tr>
+                                <td>${usuario.nombre}</td>
+                                <td>${usuario.email}</td>
+                                <td>${usuario.rol}</td>
+                                <td>${usuario.activo ? '✅' : '❌'}</td>
+                                <td>
+                                    <select onchange="cambiarRol(${usuario.id}, this.value)">
+                                        <option value="">Cambiar rol...</option>
+                                        <option value="cliente">Cliente</option>
+                                        <option value="mesero">Mesero</option>
+                                        <option value="cocinero">Cocinero</option>
+                                        <option value="cajero">Cajero</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        });
+}
+
+function cambiarRol(usuarioId, nuevoRol) {
+    if (!nuevoRol) return;
+    
+    fetch(`/admin/api/usuario/${usuarioId}/rol`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rol: nuevoRol })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert('Rol actualizado');
+            cargarUsuarios();
+        }
+    });
+}
+
+// ===== MESAS =====
+function cargarMesas() {
+    fetch('/api/mesas')
+        .then(response => response.json())
+        .then(mesas => {
+            const container = document.getElementById('mesas-list');
+            container.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Capacidad</th>
+                            <th>Ubicación</th>
+                            <th>Tipo</th>
+                            <th>Disponible</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${mesas.map(mesa => `
+                            <tr>
+                                <td>${mesa.numero}</td>
+                                <td>${mesa.capacidad} personas</td>
+                                <td>${mesa.ubicacion}</td>
+                                <td>${mesa.tipo}</td>
+                                <td>${mesa.disponible ? '✅' : '❌'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        });
+}
+
+function mostrarFormularioMesa() {
+    alert('Funcionalidad de agregar mesa en desarrollo');
+}
+
+// Cargar inventario al inicio
+cargarInventario();
+</script>
+{% endblock %}

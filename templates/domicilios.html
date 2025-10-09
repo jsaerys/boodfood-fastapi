@@ -1,0 +1,596 @@
+{% extends "base.html" %}
+
+{% block title %}Domicilios - BoodFood{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Pide a Domicilio</h1>
+        <p>Disfruta de nuestros deliciosos platos en la comodidad de tu hogar</p>
+    </div>
+</div>
+
+<div class="domicilios-container">
+    <div class="container">
+        <div class="domicilios-layout">
+            <!-- Menú de categorías -->
+            <aside class="categorias-sidebar">
+                <h3>Categorías</h3>
+                <ul class="categorias-list">
+                    <li class="categoria-item active" data-categoria="todas">
+                        <span>🍽️ Todas</span>
+                    </li>
+                    {% for categoria in categorias %}
+                    <li class="categoria-item" data-categoria="{{ categoria.id }}">
+                        <span>{{ categoria.nombre }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                
+                <div class="carrito-resumen">
+                    <h4>Tu Pedido</h4>
+                    <div id="carrito-items"></div>
+                    <div class="carrito-total">
+                        <strong>Total:</strong>
+                        <span id="carrito-total">$0</span>
+                    </div>
+                    <button id="btn-finalizar-pedido" class="btn btn-primary btn-block" disabled>
+                        Finalizar Pedido
+                    </button>
+                </div>
+            </aside>
+            
+            <!-- Grid de productos -->
+            <main class="productos-main">
+                <div class="productos-header">
+                    <input type="text" id="search-productos" class="form-control" placeholder="Buscar productos...">
+                </div>
+                
+                <div id="productos-grid" class="productos-grid">
+                    {% for item in items %}
+                    <div class="producto-card" data-id="{{ item.id }}" data-categoria="{{ item.categoria_id }}">
+                        <div class="producto-imagen">
+                            {% if item.imagen_url %}
+                            <img src="{{ item.imagen_url }}" alt="{{ item.nombre }}">
+                            {% else %}
+                            <div class="producto-imagen-placeholder">🍽️</div>
+                            {% endif %}
+                            
+                            {% if item.destacado %}
+                            <span class="badge badge-destacado">Destacado</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="producto-info">
+                            <h3 class="producto-nombre">{{ item.nombre }}</h3>
+                            <p class="producto-descripcion">{{ item.descripcion }}</p>
+                            
+                            <div class="producto-etiquetas">
+                                {% if item.vegetariano %}
+                                <span class="etiqueta etiqueta-vegetariano" title="Vegetariano">🌱</span>
+                                {% endif %}
+                                {% if item.vegano %}
+                                <span class="etiqueta etiqueta-vegano" title="Vegano">🥬</span>
+                                {% endif %}
+                                {% if item.sin_gluten %}
+                                <span class="etiqueta etiqueta-sin-gluten" title="Sin Gluten">🌾</span>
+                                {% endif %}
+                                {% if item.picante %}
+                                <span class="etiqueta etiqueta-picante" title="Picante">🌶️</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="producto-footer">
+                                <div class="producto-precio">
+                                    {% if item.precio_descuento %}
+                                    <span class="precio-original">${{ "{:,.0f}".format(item.precio) }}</span>
+                                    <span class="precio-descuento">${{ "{:,.0f}".format(item.precio_descuento) }}</span>
+                                    {% else %}
+                                    <span class="precio">${{ "{:,.0f}".format(item.precio) }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <button class="btn btn-agregar" onclick="agregarAlCarrito({{ item.id }}, '{{ item.nombre }}', {{ item.precio_descuento or item.precio }})">
+                                    Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de finalizar pedido -->
+<div id="modal-pedido" class="modal">
+    <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h2>Finalizar Pedido</h2>
+        
+        <form id="form-pedido">
+            <div class="form-group">
+                <label for="direccion_entrega">Dirección de Entrega *</label>
+                <textarea id="direccion_entrega" name="direccion_entrega" required class="form-control" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefono_contacto">Teléfono de Contacto *</label>
+                <input type="tel" id="telefono_contacto" name="telefono_contacto" required class="form-control" value="{{ current_user.telefono if current_user.is_authenticated else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="nombre_receptor">Nombre de quien recibe *</label>
+                <input type="text" id="nombre_receptor" name="nombre_receptor" required class="form-control" value="{{ current_user.nombre if current_user.is_authenticated else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="instrucciones">Instrucciones de Entrega</label>
+                <textarea id="instrucciones" name="instrucciones" class="form-control" rows="2" placeholder="Ej: Tocar el timbre, casa azul, etc."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="metodo_pago">Método de Pago *</label>
+                <select id="metodo_pago" name="metodo_pago" required class="form-control">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia</option>
+                </select>
+            </div>
+            
+            <div class="pedido-resumen">
+                <h3>Resumen del Pedido</h3>
+                <div id="resumen-items"></div>
+                <div class="resumen-total">
+                    <strong>Total a Pagar:</strong>
+                    <span id="resumen-total">$0</span>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">Confirmar Pedido</button>
+                <button type="button" class="btn btn-outline btn-lg" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let carrito = [];
+
+function agregarAlCarrito(id, nombre, precio) {
+    const itemExistente = carrito.find(item => item.id === id);
+    
+    if (itemExistente) {
+        itemExistente.cantidad++;
+    } else {
+        carrito.push({
+            id: id,
+            nombre: nombre,
+            precio: precio,
+            cantidad: 1
+        });
+    }
+    
+    actualizarCarrito();
+}
+
+function eliminarDelCarrito(id) {
+    carrito = carrito.filter(item => item.id !== id);
+    actualizarCarrito();
+}
+
+function cambiarCantidad(id, cambio) {
+    const item = carrito.find(item => item.id === id);
+    if (item) {
+        item.cantidad += cambio;
+        if (item.cantidad <= 0) {
+            eliminarDelCarrito(id);
+        } else {
+            actualizarCarrito();
+        }
+    }
+}
+
+function actualizarCarrito() {
+    const carritoItems = document.getElementById('carrito-items');
+    const carritoTotal = document.getElementById('carrito-total');
+    const btnFinalizar = document.getElementById('btn-finalizar-pedido');
+    
+    if (carrito.length === 0) {
+        carritoItems.innerHTML = '<p class="carrito-vacio">Tu carrito está vacío</p>';
+        carritoTotal.textContent = '$0';
+        btnFinalizar.disabled = true;
+        return;
+    }
+    
+    let html = '';
+    let total = 0;
+    
+    carrito.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        
+        html += `
+            <div class="carrito-item">
+                <div class="carrito-item-info">
+                    <strong>${item.nombre}</strong>
+                    <span class="carrito-item-precio">$${item.precio.toLocaleString()}</span>
+                </div>
+                <div class="carrito-item-cantidad">
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, -1)">-</button>
+                    <span>${item.cantidad}</span>
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, 1)">+</button>
+                </div>
+                <div class="carrito-item-subtotal">
+                    $${subtotal.toLocaleString()}
+                </div>
+            </div>
+        `;
+    });
+    
+    carritoItems.innerHTML = html;
+    carritoTotal.textContent = '$' + total.toLocaleString();
+    btnFinalizar.disabled = false;
+}
+
+// Filtrar por categoría
+document.querySelectorAll('.categoria-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.categoria-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        const categoria = this.dataset.categoria;
+        const productos = document.querySelectorAll('.producto-card');
+        
+        productos.forEach(producto => {
+            if (categoria === 'todas' || producto.dataset.categoria === categoria) {
+                producto.style.display = 'block';
+            } else {
+                producto.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Buscar productos
+document.getElementById('search-productos').addEventListener('input', function() {
+    const busqueda = this.value.toLowerCase();
+    const productos = document.querySelectorAll('.producto-card');
+    
+    productos.forEach(producto => {
+        const nombre = producto.querySelector('.producto-nombre').textContent.toLowerCase();
+        const descripcion = producto.querySelector('.producto-descripcion').textContent.toLowerCase();
+        
+        if (nombre.includes(busqueda) || descripcion.includes(busqueda)) {
+            producto.style.display = 'block';
+        } else {
+            producto.style.display = 'none';
+        }
+    });
+});
+
+// Finalizar pedido
+document.getElementById('btn-finalizar-pedido').addEventListener('click', function() {
+    if (!{{ 'true' if current_user.is_authenticated else 'false' }}) {
+        alert('Debes iniciar sesión para hacer un pedido');
+        window.location.href = '/auth/login';
+        return;
+    }
+    
+    // Mostrar modal
+    document.getElementById('modal-pedido').style.display = 'block';
+    
+    // Actualizar resumen
+    let html = '';
+    let total = 0;
+    
+    carrito.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        html += `<div class="resumen-item">${item.cantidad}x ${item.nombre} - $${subtotal.toLocaleString()}</div>`;
+    });
+    
+    document.getElementById('resumen-items').innerHTML = html;
+    document.getElementById('resumen-total').textContent = '$' + total.toLocaleString();
+});
+
+// Cerrar modal
+function cerrarModal() {
+    document.getElementById('modal-pedido').style.display = 'none';
+}
+
+document.querySelector('.modal-close').addEventListener('click', cerrarModal);
+
+// Enviar pedido
+document.getElementById('form-pedido').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const pedidoData = {
+        items: carrito.map(item => ({
+            menu_item_id: item.id,
+            cantidad: item.cantidad
+        })),
+        direccion_entrega: document.getElementById('direccion_entrega').value,
+        telefono_contacto: document.getElementById('telefono_contacto').value,
+        nombre_receptor: document.getElementById('nombre_receptor').value,
+        instrucciones: document.getElementById('instrucciones').value,
+        metodo_pago: document.getElementById('metodo_pago').value
+    };
+    
+    try {
+        const response = await fetch('/api/pedidos/crear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(pedidoData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('¡Pedido creado exitosamente! Código: ' + data.pedido.codigo_pedido);
+            carrito = [];
+            actualizarCarrito();
+            cerrarModal();
+            window.location.href = '/';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al crear el pedido. Por favor intenta nuevamente.');
+    }
+});
+</script>
+
+<style>
+.domicilios-container {
+    padding: 2rem 0;
+    background-color: var(--light-color);
+    min-height: calc(100vh - 200px);
+}
+
+.domicilios-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+}
+
+.categorias-sidebar {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.categorias-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+
+.categoria-item {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.categoria-item:hover,
+.categoria-item.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.carrito-resumen {
+    border-top: 2px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.carrito-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.carrito-item-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.carrito-item-cantidad {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.btn-cantidad {
+    width: 25px;
+    height: 25px;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.carrito-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    font-size: 1.2rem;
+}
+
+.productos-main {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+}
+
+.productos-header {
+    margin-bottom: 2rem;
+}
+
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.producto-card {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.producto-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+}
+
+.producto-imagen {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.producto-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.producto-imagen-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--light-color);
+    font-size: 4rem;
+}
+
+.badge-destacado {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--warning-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.producto-info {
+    padding: 1rem;
+}
+
+.producto-nombre {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.producto-descripcion {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.75rem;
+}
+
+.producto-etiquetas {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.etiqueta {
+    font-size: 1.2rem;
+}
+
+.producto-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.precio {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.precio-original {
+    text-decoration: line-through;
+    color: #999;
+    margin-right: 0.5rem;
+}
+
+.precio-descuento {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--danger-color);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-close {
+    float: right;
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.resumen-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.resumen-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .domicilios-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .categorias-sidebar {
+        position: static;
+    }
+    
+    .productos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

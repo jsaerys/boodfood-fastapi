@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}Nuestro Equipo - BoodFood{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Nuestro Equipo</h1>
+        <p>Conoce a las personas que hacen posible tu experiencia en BoodFood</p>
+    </div>
+</div>
+
+<div class="equipo-container">
+    <div class="container">
+        <div class="equipo-intro">
+            <p>En BoodFood contamos con un equipo profesional y apasionado, comprometido con brindarte el mejor servicio y las experiencias más memorables. Cada miembro de nuestro equipo está capacitado para atenderte con excelencia.</p>
+        </div>
+        
+        <div class="equipo-seccion">
+            <h2>🍽️ Meseros</h2>
+            <p class="seccion-descripcion">Nuestros meseros están listos para atenderte con una sonrisa y hacer que tu visita sea perfecta.</p>
+            
+            <div class="equipo-grid">
+                {% for mesero in meseros %}
+                <div class="miembro-card">
+                    <div class="miembro-foto">
+                        {% if mesero.foto %}
+                        <img src="{{ mesero.foto }}" alt="{{ mesero.nombre }}">
+                        {% else %}
+                        <div class="foto-placeholder">👨‍🍳</div>
+                        {% endif %}
+                        
+                        {% if mesero.disponible %}
+                        <span class="badge badge-disponible">Disponible</span>
+                        {% else %}
+                        <span class="badge badge-ocupado">Ocupado</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="miembro-info">
+                        <h3>{{ mesero.nombre }}</h3>
+                        {% if mesero.especialidad %}
+                        <p class="miembro-especialidad">{{ mesero.especialidad }}</p>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline btn-sm" onclick="seleccionarMesero({{ mesero.id }}, '{{ mesero.nombre }}')">
+                            Solicitar Atención
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="equipo-seccion">
+            <h2>👨‍🍳 Cocina</h2>
+            <p class="seccion-descripcion">Nuestro equipo de cocina trabaja con pasión para preparar cada plato con los más altos estándares de calidad.</p>
+            
+            <div class="cocina-info">
+                <div class="cocina-card">
+                    <div class="cocina-icono">👨‍🍳</div>
+                    <h4>Chef Ejecutivo</h4>
+                    <p>Con más de 15 años de experiencia en gastronomía internacional</p>
+                </div>
+                
+                <div class="cocina-card">
+                    <div class="cocina-icono">🥘</div>
+                    <h4>Sous Chef</h4>
+                    <p>Especialista en cocina fusión y platos innovadores</p>
+                </div>
+                
+                <div class="cocina-card">
+                    <div class="cocina-icono">🍰</div>
+                    <h4>Chef Pastelero</h4>
+                    <p>Creador de postres únicos y deliciosos</p>
+                </div>
+                
+                <div class="cocina-card">
+                    <div class="cocina-icono">🔥</div>
+                    <h4>Cocineros de Línea</h4>
+                    <p>Equipo dedicado a la preparación perfecta de cada plato</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="equipo-seccion">
+            <h2>💼 Administración</h2>
+            <p class="seccion-descripcion">Nuestro equipo administrativo se encarga de que todo funcione perfectamente.</p>
+            
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <div class="admin-icono">👔</div>
+                    <h4>Gerente General</h4>
+                    <p>Supervisión y coordinación de todas las operaciones del restaurante</p>
+                </div>
+                
+                <div class="admin-card">
+                    <div class="admin-icono">💰</div>
+                    <h4>Caja y Atención</h4>
+                    <p>Gestión de pagos y atención personalizada</p>
+                </div>
+                
+                <div class="admin-card">
+                    <div class="admin-icono">📦</div>
+                    <h4>Inventario</h4>
+                    <p>Control de calidad y frescura de ingredientes</p>
+                </div>
+                
+                <div class="admin-card">
+                    <div class="admin-icono">🎉</div>
+                    <h4>Coordinador de Eventos</h4>
+                    <p>Planificación y ejecución de eventos especiales</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="valores-seccion">
+            <h2>Nuestros Valores</h2>
+            
+            <div class="valores-grid">
+                <div class="valor-card">
+                    <div class="valor-icono">⭐</div>
+                    <h4>Excelencia</h4>
+                    <p>Nos esforzamos por superar las expectativas en cada detalle</p>
+                </div>
+                
+                <div class="valor-card">
+                    <div class="valor-icono">❤️</div>
+                    <h4>Pasión</h4>
+                    <p>Amamos lo que hacemos y se refleja en nuestro servicio</p>
+                </div>
+                
+                <div class="valor-card">
+                    <div class="valor-icono">🤝</div>
+                    <h4>Compromiso</h4>
+                    <p>Dedicados a brindarte la mejor experiencia posible</p>
+                </div>
+                
+                <div class="valor-card">
+                    <div class="valor-icono">🌟</div>
+                    <h4>Innovación</h4>
+                    <p>Constantemente mejorando y creando nuevas experiencias</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="unete-seccion">
+            <h2>¿Quieres ser parte de nuestro equipo?</h2>
+            <p>Estamos siempre buscando personas talentosas y apasionadas para unirse a la familia BoodFood.</p>
+            <a href="mailto:rrhh@boodfood.com" class="btn btn-primary btn-lg">Envía tu CV</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function seleccionarMesero(id, nombre) {
+    if (!{{ 'true' if current_user.is_authenticated else 'false' }}) {
+        alert('Debes iniciar sesión para solicitar atención de un mesero');
+        window.location.href = '/auth/login';
+        return;
+    }
+    
+    if (confirm(`¿Deseas que ${nombre} te atienda?`)) {
+        window.location.href = '/reservas?mesero=' + id;
+    }
+}
+</script>
+
+<style>
+.equipo-container {
+    padding: 3rem 0;
+    background-color: var(--light-color);
+}
+
+.equipo-intro {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    font-size: 1.1rem;
+    color: #666;
+    line-height: 1.8;
+}
+
+.equipo-seccion {
+    background: white;
+    border-radius: 15px;
+    padding: 3rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.equipo-seccion h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+.seccion-descripcion {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.equipo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.miembro-card {
+    background: var(--light-color);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.miembro-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.miembro-foto {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+}
+
+.miembro-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.foto-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 5rem;
+}
+
+.badge-disponible {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--success-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.badge-ocupado {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--danger-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.miembro-info {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.miembro-info h3 {
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+.miembro-especialidad {
+    color: var(--primary-color);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.cocina-info,
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.cocina-card,
+.admin-card {
+    background: var(--light-color);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.cocina-card:hover,
+.admin-card:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+.cocina-icono,
+.admin-icono {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.cocina-card h4,
+.admin-card h4 {
+    margin-bottom: 0.5rem;
+}
+
+.valores-seccion {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 15px;
+    padding: 3rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.valores-seccion h2 {
+    margin-bottom: 2rem;
+}
+
+.valores-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.valor-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 2rem;
+    transition: all 0.3s;
+}
+
+.valor-card:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-5px);
+}
+
+.valor-icono {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.valor-card h4 {
+    margin-bottom: 0.5rem;
+}
+
+.unete-seccion {
+    background: white;
+    border-radius: 15px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.unete-seccion h2 {
+    color: var(--dark-color);
+    margin-bottom: 1rem;
+}
+
+.unete-seccion p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .equipo-grid,
+    .cocina-info,
+    .admin-grid,
+    .valores-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .equipo-seccion,
+    .valores-seccion,
+    .unete-seccion {
+        padding: 2rem 1rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Menú - BoodFood{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Nuestro Menú</h1>
+        <p>Descubre nuestra deliciosa selección de platos y bebidas</p>
+    </div>
+</div>
+
+<div class="menu-container">
+    <div class="container">
+        {% for categoria_nombre, items in menu_por_categoria.items() %}
+            {% if items %}
+            <section class="menu-category">
+                <h2 class="category-title">{{ categoria_nombre }}</h2>
+                
+                <div class="menu-grid">
+                    {% for item in items %}
+                    <div class="menu-item">
+                        {% if item.imagen %}
+                        <div class="menu-item-image">
+                            <img src="{{ item.imagen }}" alt="{{ item.nombre }}">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="menu-item-content">
+                            <div class="menu-item-header">
+                                <h3>{{ item.nombre }}</h3>
+                                <span class="menu-item-price">${{ "%.2f"|format(item.precio) }}</span>
+                            </div>
+                            
+                            {% if item.descripcion %}
+                            <p class="menu-item-description">{{ item.descripcion }}</p>
+                            {% endif %}
+                            
+                            <div class="menu-item-type">
+                                <span class="badge badge-{{ item.tipo }}">{{ item.tipo }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="menu-cta">
+    <div class="container">
+        <h2>¿Listo para ordenar?</h2>
+        <div class="cta-buttons">
+            <a href="{{ url_for('main.reservas') }}" class="btn btn-primary btn-lg">Reservar Mesa</a>
+            <a href="{{ url_for('main.domicilios') }}" class="btn btn-outline btn-lg">Pedir a Domicilio</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

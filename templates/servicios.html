@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Servicios - BoodFood{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Nuestros Servicios</h1>
+        <p>Disfruta de experiencias únicas en BoodFood</p>
+    </div>
+</div>
+
+<div class="servicios-container">
+    <div class="container">
+        <div class="servicios-intro">
+            <p>En BoodFood ofrecemos mucho más que comida deliciosa. Contamos con instalaciones y servicios diseñados para que disfrutes al máximo tu visita.</p>
+        </div>
+        
+        <div class="servicios-grid">
+            {% for servicio in servicios %}
+            <div class="servicio-card servicio-{{ servicio.tipo }}">
+                <div class="servicio-icono">
+                    {% if servicio.tipo == 'piscina' %}
+                    🏊
+                    {% elif servicio.tipo == 'billar' %}
+                    🎱
+                    {% elif servicio.tipo == 'evento' %}
+                    🎉
+                    {% else %}
+                    ⭐
+                    {% endif %}
+                </div>
+                
+                <div class="servicio-contenido">
+                    <h3>{{ servicio.nombre }}</h3>
+                    <p class="servicio-descripcion">{{ servicio.descripcion }}</p>
+                    
+                    <div class="servicio-detalles">
+                        {% if servicio.capacidad %}
+                        <div class="servicio-detalle">
+                            <strong>Capacidad:</strong> {{ servicio.capacidad }} personas
+                        </div>
+                        {% endif %}
+                        
+                        <div class="servicio-precio">
+                            <strong>Precio:</strong> ${{ "{:,.0f}".format(servicio.precio) }}
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="reservarServicio({{ servicio.id }}, '{{ servicio.nombre }}', {{ servicio.precio }})">
+                        Reservar Ahora
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Sección de piscina destacada -->
+        <div class="seccion-destacada piscina-seccion">
+            <div class="seccion-contenido">
+                <h2>🏊 Zona de Piscina</h2>
+                <p>Disfruta de nuestra hermosa piscina mientras te relajas y disfrutas de nuestros deliciosos platos y bebidas. Contamos con servicio a la piscina para que no tengas que moverte.</p>
+                
+                <div class="caracteristicas-grid">
+                    <div class="caracteristica">
+                        <div class="caracteristica-icono">🍹</div>
+                        <h4>Servicio a la Piscina</h4>
+                        <p>Pide bebidas y comida directamente desde tu lugar</p>
+                    </div>
+                    
+                    <div class="caracteristica">
+                        <div class="caracteristica-icono">🏖️</div>
+                        <h4>Zona de Descanso</h4>
+                        <p>Cómodas sillas y sombrillas para tu comodidad</p>
+                    </div>
+                    
+                    <div class="caracteristica">
+                        <div class="caracteristica-icono">👨‍👩‍👧‍👦</div>
+                        <h4>Para Toda la Familia</h4>
+                        <p>Zona segura y divertida para niños y adultos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de entretenimiento -->
+        <div class="seccion-destacada entretenimiento-seccion">
+            <div class="seccion-contenido">
+                <h2>🎱 Zona de Entretenimiento</h2>
+                <p>Complementa tu experiencia gastronómica con nuestras opciones de entretenimiento.</p>
+                
+                <div class="juegos-grid">
+                    <div class="juego-card">
+                        <div class="juego-imagen">🎱</div>
+                        <h4>Billar</h4>
+                        <p>Mesas profesionales de billar disponibles por hora</p>
+                    </div>
+                    
+                    <div class="juego-card">
+                        <div class="juego-imagen">🎯</div>
+                        <h4>Juegos de Mesa</h4>
+                        <p>Variedad de juegos para disfrutar en grupo</p>
+                    </div>
+                    
+                    <div class="juego-card">
+                        <div class="juego-imagen">🎮</div>
+                        <h4>Zona de Juegos</h4>
+                        <p>Entretenimiento para todas las edades</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de eventos -->
+        <div class="seccion-destacada eventos-seccion">
+            <div class="seccion-contenido">
+                <h2>🎉 Eventos y Celebraciones</h2>
+                <p>¿Tienes una ocasión especial? Alquila nuestros espacios para eventos privados.</p>
+                
+                <div class="eventos-info">
+                    <div class="evento-tipo">
+                        <h4>Cumpleaños</h4>
+                        <p>Celebra tu día especial con nosotros</p>
+                    </div>
+                    
+                    <div class="evento-tipo">
+                        <h4>Reuniones Corporativas</h4>
+                        <p>Espacios ideales para eventos de empresa</p>
+                    </div>
+                    
+                    <div class="evento-tipo">
+                        <h4>Fiestas Privadas</h4>
+                        <p>Personaliza tu evento a tu gusto</p>
+                    </div>
+                    
+                    <div class="evento-tipo">
+                        <h4>Celebraciones Familiares</h4>
+                        <p>Reuniones, aniversarios y más</p>
+                    </div>
+                </div>
+                
+                <div class="eventos-contacto">
+                    <p><strong>Para cotizaciones y reservas de eventos:</strong></p>
+                    <p>📞 Teléfono: +57 300 123 4567</p>
+                    <p>📧 Email: eventos@boodfood.com</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function reservarServicio(id, nombre, precio) {
+    if (!{{ 'true' if current_user.is_authenticated else 'false' }}) {
+        alert('Debes iniciar sesión para reservar servicios');
+        window.location.href = '/auth/login';
+        return;
+    }
+    
+    if (confirm(`¿Deseas reservar ${nombre} por $${precio.toLocaleString()}?`)) {
+        window.location.href = '/reservas?servicio=' + id;
+    }
+}
+</script>
+
+<style>
+.servicios-container {
+    padding: 3rem 0;
+    background-color: var(--light-color);
+}
+
+.servicios-intro {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.servicios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.servicio-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.servicio-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.servicio-icono {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.servicio-contenido h3 {
+    color: var(--dark-color);
+    margin-bottom: 1rem;
+}
+
+.servicio-descripcion {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.servicio-detalles {
+    background: var(--light-color);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.servicio-detalle {
+    margin-bottom: 0.5rem;
+}
+
+.servicio-precio {
+    font-size: 1.3rem;
+    color: var(--primary-color);
+}
+
+.seccion-destacada {
+    background: white;
+    border-radius: 15px;
+    padding: 3rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.seccion-contenido h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+.seccion-contenido > p {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.caracteristicas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.caracteristica {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.caracteristica-icono {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.caracteristica h4 {
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+.caracteristica p {
+    color: #666;
+}
+
+.juegos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.juego-card {
+    background: var(--light-color);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.juego-card:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+.juego-imagen {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.juego-card h4 {
+    margin-bottom: 0.5rem;
+}
+
+.eventos-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.evento-tipo {
+    background: var(--light-color);
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.evento-tipo h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.eventos-contacto {
+    background: var(--primary-color);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.eventos-contacto p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .servicios-grid,
+    .caracteristicas-grid,
+    .juegos-grid,
+    .eventos-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .seccion-destacada {
+        padding: 2rem 1rem;
+    }
+}
+</style>
+{% endblock %}

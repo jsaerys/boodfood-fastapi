@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BoodFood - Restaurante{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navegación -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{{ url_for('main.index') }}">
+                    <h1>BoodFood</h1>
+                </a>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="{{ url_for('main.index') }}">Inicio</a>
+                <a href="{{ url_for('main.menu') }}">Menú</a>
+                <a href="{{ url_for('main.servicios') }}">Servicios</a>
+                <a href="{{ url_for('main.equipo') }}">Equipo</a>
+                <a href="{{ url_for('main.reservas') }}">Reservas</a>
+                <a href="{{ url_for('main.domicilios') }}">Domicilios</a>
+            </div>
+            
+            <div class="nav-auth">
+                {% if current_user.is_authenticated %}
+                    <div class="user-menu">
+                        <span class="user-name">{{ current_user.nombre }}</span>
+                        
+                        {% if current_user.rol == 'admin' %}
+                            <a href="{{ url_for('admin.panel_admin') }}" class="btn btn-secondary">Panel Admin</a>
+                        {% elif current_user.rol == 'cocinero' %}
+                            <a href="{{ url_for('cocina.panel_cocina') }}" class="btn btn-secondary">Cocina</a>
+                        {% elif current_user.rol == 'cajero' %}
+                            <a href="{{ url_for('caja.panel_caja') }}" class="btn btn-secondary">Caja</a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Cerrar Sesión</a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline">Iniciar Sesión</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Registrarse</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mensajes Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                        <button class="close-alert" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Contenido Principal -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>BoodFood</h3>
+                    <p>Restaurante con piscina, billar y eventos</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>Teléfono: +57 300 123 4567</p>
+                    <p>Email: info@boodfood.com</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Horarios</h4>
+                    <p>Lunes a Viernes: 11:00 AM - 10:00 PM</p>
+                    <p>Sábados y Domingos: 10:00 AM - 11:00 PM</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 BoodFood. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
