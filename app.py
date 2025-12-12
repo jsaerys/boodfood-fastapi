@@ -137,11 +137,3 @@ if __name__ == '__main__':
     app = create_app('development')
     # Usar socketio.run en lugar de app.run para habilitar WebSocket
     socketio.run(app, host='127.0.0.1', port=5000, debug=True)
-
-cd C:\Users\USER\Downloads\Proyec11
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/jsaerys/boodfood-fastapi.git
-git push -u origin main
