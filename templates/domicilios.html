@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}Domicilios - BoodFood{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Pide a Domicilio</h1>
+        <p>Disfruta de nuestros deliciosos platos en la comodidad de tu hogar</p>
+    </div>
+</div>
+
+<div class="domicilios-container">
+    <div class="container">
+        <div class="domicilios-layout-nuevo">
+            <!-- Columna principal: Categorías y Productos -->
+            <div class="main-content-pedido">
+                <!-- Menú de categorías (Horizontal) -->
+                <nav class="categorias-nav-horizontal">
+                    <ul class="categorias-list-horizontal">
+                        <li class="categoria-item active" data-categoria="todas">
+                            <span>🍽️ Todas</span>
+                        </li>
+                        {% for categoria in categorias %}
+                        <li class="categoria-item" data-categoria="{{ categoria.id }}">
+                            <span>{{ categoria.nombre }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                
+                <!-- Grid de productos -->
+                <main class="productos-main">
+                    <div class="productos-header">
+                        <input type="text" id="search-productos" class="form-control" placeholder="Buscar productos...">
+                    </div>
+                    
+                    <div id="productos-grid" class="productos-grid">
+                        {% for item in items %}
+                        <div class="producto-card" data-id="{{ item.id }}" data-categoria="{{ item.categoria_id }}">
+                            <div class="producto-imagen">
+                                {% if item.imagen_url %}
+                                <img src="{{ item.imagen_url }}" alt="{{ item.nombre }}" onerror="this.onerror=null;this.src='https://placehold.co/400x300?text=Sin+Imagen';">
+                                {% else %}
+                                <img src="https://placehold.co/400x300?text=Sin+Imagen" alt="{{ item.nombre }}">
+                                {% endif %}
+                                
+                                {% if item.destacado %}
+                                <span class="badge badge-destacado">Destacado</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="producto-info">
+                                <h3 class="producto-nombre">{{ item.nombre }}</h3>
+                                <p class="producto-descripcion">{{ item.descripcion }}</p>
+                                
+                                <div class="producto-etiquetas">
+                                    {% if item.vegetariano %}
+                                    <span class="etiqueta etiqueta-vegetariano" title="Vegetariano">🌱</span>
+                                    {% endif %}
+                                    {% if item.vegano %}
+                                    <span class="etiqueta etiqueta-vegano" title="Vegano">🥬</span>
+                                    {% endif %}
+                                    {% if item.sin_gluten %}
+                                    <span class="etiqueta etiqueta-sin-gluten" title="Sin Gluten">🌾</span>
+                                    {% endif %}
+                                    {% if item.picante %}
+                                    <span class="etiqueta etiqueta-picante" title="Picante">🌶️</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="producto-footer">
+                                    <div class="producto-precio">
+                                        {% if item.precio_descuento %}
+                                        <span class="precio-original">${{ "{:,.0f}".format(item.precio) }}</span>
+                                        <span class="precio-descuento">${{ "{:,.0f}".format(item.precio_descuento) }}</span>
+                                        {% else %}
+                                        <span class="precio">${{ "{:,.0f}".format(item.precio) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <button class="btn btn-agregar" onclick="agregarAlCarrito({{ item.id }}, '{{ item.nombre|e }}', {{ item.precio_descuento or item.precio }})">
+                                        Agregar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </main>
+            </div>
+
+            <!-- Columna de resumen del pedido (Carrito) -->
+            <aside class="carrito-sidebar-nuevo">
+                <div class="carrito-resumen">
+                    <h4>Tu Pedido</h4>
+                    <div id="carrito-items"></div>
+                    <div class="carrito-total">
+                        <strong>Total:</strong>
+                        <span id="carrito-total">$0</span>
+                    </div>
+                    <button id="btn-finalizar-pedido" class="btn btn-primary btn-block" disabled>
+                        Finalizar Pedido
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de finalizar pedido -->
+<div id="modal-pedido" class="modal modal-domicilio">
+    <div class="modal-content modal-content-domicilio" style="max-height: 85vh; overflow-y: auto;">
+        <span class="modal-close">&times;</span>
+        <h2>Finalizar Pedido</h2>
+        
+        <form id="form-pedido">
+            <div class="form-group">
+                <label for="direccion_entrega">Dirección de Entrega *</label>
+                <textarea id="direccion_entrega" name="direccion_entrega" required class="form-control" rows="3" placeholder="Calle, número, barrio, ciudad"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="telefono_contacto">Teléfono de Contacto *</label>
+                <input type="tel" id="telefono_contacto" name="telefono_contacto" required class="form-control" value="{{ current_user.telefono if current_user.is_authenticated else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="nombre_receptor">Nombre de quien recibe *</label>
+                <input type="text" id="nombre_receptor" name="nombre_receptor" required class="form-control" value="{{ current_user.nombre if current_user.is_authenticated else '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="instrucciones">Instrucciones de Entrega</label>
+                <textarea id="instrucciones" name="instrucciones" class="form-control" rows="2" placeholder="Ej: Tocar el timbre, casa azul, etc."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="metodo_pago">Método de Pago *</label>
+                <select id="metodo_pago" name="metodo_pago" required class="form-control">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia</option>
+                </select>
+            </div>
+            
+            <div class="pedido-resumen modal-resumen-domicilio">
+                <h3>Resumen del Pedido</h3>
+                <div id="resumen-items"></div>
+                <div class="resumen-total">
+                    <strong>Total a Pagar:</strong>
+                    <span id="resumen-total">$0</span>
+                </div>
+                <small style="color: #666; display: block; margin-top: 0.5rem;">
+                    💡 Pedido mínimo: $20.000 - Tiempo estimado de entrega: 30-45 min
+                </small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">Confirmar Pedido</button>
+                <button type="button" class="btn btn-outline btn-lg" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Usar carrito global persistente (localStorage)
+function agregarAlCarrito(id, nombre, precio) {
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    if (!carrito) {
+        console.error('Carrito no disponible');
+        alert('Error al agregar al carrito. Por favor recarga la página.');
+        return;
+    }
+    carrito.agregar({ id, nombre, precio, cantidad: 1 });
+    actualizarCarrito();
+}
+
+function eliminarDelCarrito(id) {
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    if (!carrito) return;
+    carrito.remover(id);
+    actualizarCarrito();
+}
+
+function cambiarCantidad(id, cambio) {
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    if (!carrito) return;
+    if (cambio > 0) carrito.incrementar(id); else carrito.decrementar(id);
+    actualizarCarrito();
+}
+
+function actualizarCarrito() {
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    const carritoItems = document.getElementById('carrito-items');
+    const carritoTotal = document.getElementById('carrito-total');
+    const btnFinalizar = document.getElementById('btn-finalizar-pedido');
+    
+    const items = carrito ? carrito.obtenerItems() : [];
+    if (items.length === 0) {
+        carritoItems.innerHTML = '<p class="carrito-vacio">Tu carrito está vacío</p>';
+        carritoTotal.textContent = '$0';
+        btnFinalizar.disabled = true;
+        return;
+    }
+    
+    let html = '';
+    let total = 0;
+    
+    items.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        
+        html += `
+            <div class="carrito-item">
+                <div class="carrito-item-info">
+                    <strong>${item.nombre}</strong>
+                    <span class="carrito-item-precio">$${item.precio.toLocaleString()}</span>
+                </div>
+                <div class="carrito-item-cantidad">
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, -1)">-</button>
+                    <span>${item.cantidad}</span>
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, 1)">+</button>
+                </div>
+                <div class="carrito-item-subtotal">
+                    $${subtotal.toLocaleString()}
+                </div>
+            </div>
+        `;
+    });
+    
+    carritoItems.innerHTML = html;
+    carritoTotal.textContent = '$' + total.toLocaleString();
+    btnFinalizar.disabled = false;
+
+    // Actualizar resumen del modal
+    const resumenItems = document.getElementById('resumen-items');
+    const resumenTotal = document.getElementById('resumen-total');
+    
+    let resumenHtml = '';
+    items.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        resumenHtml += `
+            <div class="resumen-item">
+                <span>${item.cantidad} x ${item.nombre}</span>
+                <span>$${subtotal.toLocaleString()}</span>
+            </div>
+        `;
+    });
+    resumenItems.innerHTML = resumenHtml;
+    resumenTotal.textContent = '$' + total.toLocaleString();
+}
+
+// Filtrar por categoría
+document.querySelectorAll('.categoria-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.categoria-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        const categoria = this.dataset.categoria;
+        const productos = document.querySelectorAll('.producto-card');
+        
+        productos.forEach(producto => {
+            if (categoria === 'todas' || producto.dataset.categoria === categoria) {
+                producto.style.display = 'block';
+            } else {
+                producto.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Inicializar y manejar el modal
+const modal = document.getElementById('modal-pedido');
+const btnFinalizar = document.getElementById('btn-finalizar-pedido');
+const spanClose = document.querySelector('.modal-close');
+
+const isAuth = {{ 'true' if current_user.is_authenticated else 'false' }};
+
+btnFinalizar.onclick = function() {
+    // Verificar autenticación
+    if (!isAuth) {
+        if (confirm('Debes iniciar sesión para hacer un pedido.\n¿Deseas ir a la página de inicio de sesión?')) {
+            window.location.href = '{{ url_for("auth.login") }}?next={{ url_for("main.domicilios") }}';
+        }
+        return;
+    }
+    
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    const items = carrito ? carrito.obtenerItems() : [];
+    if (items.length > 0) {
+        modal.style.display = 'block';
+    }
+}
+
+spanClose.onclick = function() {
+    cerrarModal();
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        cerrarModal();
+    }
+}
+
+function cerrarModal() {
+    modal.style.display = 'none';
+}
+
+// Manejar el envío del formulario con conexión a la base de datos
+document.getElementById('form-pedido').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    const items = carrito ? carrito.obtenerItems() : [];
+    if (items.length === 0) {
+        alert('Tu carrito está vacío');
+        return;
+    }
+    
+    // Validar pedido mínimo
+    const total = items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const PEDIDO_MINIMO = 20000;
+    if (total < PEDIDO_MINIMO) {
+        alert(`El pedido mínimo para domicilios es de $${PEDIDO_MINIMO.toLocaleString()}.\nTotal actual: $${total.toLocaleString()}\nAgrega $${(PEDIDO_MINIMO - total).toLocaleString()} más para continuar.`);
+        cerrarModal();
+        return;
+    }
+    
+    // Validar campos requeridos
+    const direccion = document.getElementById('direccion_entrega').value.trim();
+    const telefono = document.getElementById('telefono_contacto').value.trim();
+    const nombre = document.getElementById('nombre_receptor').value.trim();
+    const metodoPago = document.getElementById('metodo_pago').value;
+    
+    if (!direccion || !telefono || !nombre || !metodoPago) {
+        alert('Por favor completa todos los campos obligatorios (*)');
+        return;
+    }
+    
+    // Validar teléfono (mínimo 7 dígitos)
+    const telefonoLimpio = telefono.replace(/\D/g, '');
+    if (telefonoLimpio.length < 7) {
+        alert('Por favor ingresa un número de teléfono válido');
+        document.getElementById('telefono_contacto').focus();
+        return;
+    }
+    
+    // Deshabilitar botón para evitar doble envío
+    const btnSubmit = this.querySelector('button[type="submit"]');
+    const textoOriginal = btnSubmit.textContent;
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Procesando...';
+    
+    // Obtener datos del formulario
+    const formData = new FormData(this);
+    const datosPedido = {
+        tipo: 'domicilio',
+        metodo_pago: formData.get('metodo_pago'),
+        direccion_entrega: formData.get('direccion_entrega'),
+        telefono_contacto: formData.get('telefono_contacto'),
+        nombre_receptor: formData.get('nombre_receptor'),
+        instrucciones_entrega: formData.get('instrucciones') || '',
+        items: items.map(item => ({
+            id: item.id,
+            nombre: item.nombre,
+            precio: item.precio,
+            cantidad: item.cantidad
+        }))
+    };
+    
+    // Enviar al servidor
+    fetch('/pedidos/crear', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosPedido)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const total = document.getElementById('resumen-total').textContent;
+            alert(`✅ ¡Pedido realizado con éxito!\n\nCódigo: ${data.codigo}\nTotal: ${total}\n\nTu pedido llegará pronto. ¡Gracias por tu compra!`);
+            
+            // Limpiar carrito y formulario
+            if (carrito) carrito.vaciar();
+            actualizarCarrito();
+            document.getElementById('form-pedido').reset();
+            cerrarModal();
+            
+            // Opcional: redirigir a Mi Cuenta para ver el pedido
+            // window.location.href = '/cuenta/mi-cuenta';
+        } else {
+            alert('❌ Error al crear el pedido: ' + (data.error || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ Error de conexión. Por favor, verifica tu internet e intenta nuevamente.');
+    })
+    .finally(() => {
+        // Rehabilitar botón
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = textoOriginal;
+    });
+});
+
+// Inicializar el carrito al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarCarrito();
+    
+    // Validación en tiempo real del teléfono
+    const telefonoInput = document.getElementById('telefono_contacto');
+    if (telefonoInput) {
+        telefonoInput.addEventListener('input', function() {
+            // Permitir solo números, espacios, guiones y paréntesis
+            this.value = this.value.replace(/[^\d\s\-\(\)\+]/g, '');
+        });
+    }
+    
+    // Contador de caracteres para dirección
+    const direccionTextarea = document.getElementById('direccion_entrega');
+    if (direccionTextarea) {
+        direccionTextarea.addEventListener('input', function() {
+            if (this.value.length < 10) {
+                this.style.borderColor = '#ffc107';
+            } else {
+                this.style.borderColor = '#28a745';
+            }
+        });
+    }
+});
+
+// Función para buscar productos
+document.getElementById('search-productos').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const productos = document.querySelectorAll('.producto-card');
+    
+    productos.forEach(producto => {
+        const nombre = producto.querySelector('.producto-nombre').textContent.toLowerCase();
+        const descripcion = producto.querySelector('.producto-descripcion').textContent.toLowerCase();
+        
+        if (nombre.includes(searchTerm) || descripcion.includes(searchTerm)) {
+            producto.style.display = 'block';
+        } else {
+            producto.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

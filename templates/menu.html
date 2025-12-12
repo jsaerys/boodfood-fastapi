@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+
+{% block title %}Menú - BoodFood{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Nuestro Menú</h1>
+        <p>Descubre nuestra deliciosa selección de platos y bebidas</p>
+    </div>
+</div>
+
+<div class="domicilios-container">
+    <div class="container">
+        <div class="domicilios-layout-nuevo">
+            <!-- Columna principal: Categorías y Productos -->
+            <div class="main-content-pedido">
+                <!-- Menú de categorías (Horizontal) -->
+                <nav class="categorias-nav-horizontal">
+                    <ul class="categorias-list-horizontal">
+                        <li class="categoria-item active" data-categoria="todas">
+                            <span>🍽️ Todas</span>
+                        </li>
+                        {% for categoria in categorias %}
+                        <li class="categoria-item" data-categoria="{{ categoria.id }}">
+                            <span>{{ categoria.nombre }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                
+                <!-- Grid de productos -->
+                <main class="productos-main">
+                    <div class="productos-header">
+                        <input type="text" id="search-productos" class="form-control" placeholder="Buscar productos...">
+                    </div>
+                    
+                    <div id="productos-grid" class="productos-grid">
+                        {% for item in items %}
+                        <div class="producto-card" data-id="{{ item.id }}" data-categoria="{{ item.categoria_id }}">
+                            <div class="producto-imagen">
+                                {% if item.imagen_url %}
+                                <img src="{{ item.imagen_url }}" alt="{{ item.nombre }}" onerror="this.onerror=null;this.src='https://placehold.co/400x300?text=Sin+Imagen';">
+                                {% else %}
+                                <img src="https://placehold.co/400x300?text=Sin+Imagen" alt="{{ item.nombre }}">
+                                {% endif %}
+                                
+                                {% if item.destacado %}
+                                <span class="badge badge-destacado">Destacado</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="producto-info">
+                                <h3 class="producto-nombre">{{ item.nombre }}</h3>
+                                <p class="producto-descripcion">{{ item.descripcion }}</p>
+                                
+                                <div class="producto-etiquetas">
+                                    {% if item.vegetariano %}
+                                    <span class="etiqueta etiqueta-vegetariano" title="Vegetariano">🌱</span>
+                                    {% endif %}
+                                    {% if item.vegano %}
+                                    <span class="etiqueta etiqueta-vegano" title="Vegano">🥬</span>
+                                    {% endif %}
+                                    {% if item.sin_gluten %}
+                                    <span class="etiqueta etiqueta-sin-gluten" title="Sin Gluten">🌾</span>
+                                    {% endif %}
+                                    {% if item.picante %}
+                                    <span class="etiqueta etiqueta-picante" title="Picante">🌶️</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="producto-footer">
+                                    <div class="producto-precio">
+                                        {% if item.precio_descuento %}
+                                        <span class="precio-original">${{ "{:,.0f}".format(item.precio) }}</span>
+                                        <span class="precio-descuento">${{ "{:,.0f}".format(item.precio_descuento) }}</span>
+                                        {% else %}
+                                        <span class="precio">${{ "{:,.0f}".format(item.precio) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <button class="btn btn-agregar" onclick="agregarAlCarrito({{ item.id }}, '{{ item.nombre|e }}', {{ item.precio_descuento or item.precio }})">
+                                        Agregar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </main>
+            </div>
+
+            <!-- Columna de resumen del pedido (Carrito) -->
+            <aside class="carrito-sidebar-nuevo">
+                <div class="carrito-resumen">
+                    <h4>Tu Pedido</h4>
+                    <div id="carrito-items"></div>
+                    <div class="carrito-total">
+                        <strong>Total:</strong>
+                        <span id="carrito-total">$0</span>
+                    </div>
+                    <button id="btn-finalizar-pedido" class="btn btn-primary btn-block" disabled>
+                        Hacer Pedido
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de finalizar pedido -->
+<div id="modal-pedido" class="modal modal-confirmacion">
+    <div class="modal-content modal-content-confirmacion" style="max-height: 85vh; overflow-y: auto;">
+        <span class="modal-close">&times;</span>
+        <h2>Confirmar Pedido</h2>
+        
+        <p class="modal-subtitle">Selecciona cómo deseas recibir tu pedido.</p>
+
+        <div class="pedido-resumen modal-resumen">
+            <h3>Resumen del Pedido</h3>
+            <div id="resumen-items"></div>
+            <div class="resumen-total">
+                <strong>Total a Pagar:</strong>
+                <span id="resumen-total">$0</span>
+            </div>
+        </div>
+        
+        <div class="form-actions pedido-opciones">
+            <div id="selector-mesa" style="display: none; width: 100%; margin-bottom: 1rem;">
+                <label for="select-mesa" class="form-label" style="font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">
+                    <i class="fas fa-chair"></i> Selecciona tu Mesa:
+                </label>
+                <select id="select-mesa" class="form-control" style="padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                    <option value="" disabled selected>Cargando mesas disponibles...</option>
+                </select>
+                <div id="ayuda-mesas" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; padding: 0.5rem; background: #f0f9ff; border-left: 3px solid #3498db; border-radius: 4px;">
+                    <i class="fas fa-info-circle" style="color: #3498db;"></i>
+                    <small style="color: #2c3e50; margin: 0;">Se muestran mesas disponibles actualmente.</small>
+                </div>
+                <button type="button" class="btn btn-success btn-block mt-3" onclick="finalizarPedidoMesa()" style="padding: 0.75rem; font-weight: 600; border-radius: 8px;">
+                    <i class="fas fa-check-circle"></i> Confirmar Mesa
+                </button>
+            </div>
+            <div id="selector-llevar" style="display: none; width: 100%; margin-bottom: 1rem;">
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="nombre_llevar" class="form-label">Nombre de quien recoge *</label>
+                        <input type="text" id="nombre_llevar" class="form-control" placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono_llevar" class="form-label">Teléfono de contacto *</label>
+                        <input type="tel" id="telefono_llevar" class="form-control" placeholder="Ej: 3001234567">
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label for="hora_llevar" class="form-label">Hora estimada de recogida</label>
+                        <input type="time" id="hora_llevar" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="pago_llevar" class="form-label">Método de pago *</label>
+                        <select id="pago_llevar" class="form-control">
+                            <option value="" disabled selected>Selecciona</option>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="notas_llevar" class="form-label">Notas para cocina/caja</label>
+                    <textarea id="notas_llevar" class="form-control" rows="2" placeholder="Ej: sin cebolla, agregar salsa, etc."></textarea>
+                </div>
+                <button type="button" class="btn btn-success btn-block mt-2" onclick="finalizarPedidoLlevar()">Confirmar Para Llevar</button>
+            </div>
+
+            <button type="button" id="btn-para-mesa" class="btn btn-primary btn-lg" onclick="mostrarSelectorMesa()">Para Mesa</button>
+            <button type="button" id="btn-para-llevar" class="btn btn-secondary btn-lg" onclick="mostrarSelectorLlevar()">Para Llevar</button>
+            <button type="button" class="btn btn-outline btn-lg" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Carrito LOCAL para el menú (no persistente entre páginas)
+let carritoMenuLocal = [];
+
+// Sobrescribir cualquier función global agregarAlCarrito
+window.agregarAlCarrito = function(id, nombre, precio) {
+    const itemExistente = carritoMenuLocal.find(i => i.id === id);
+    if (itemExistente) {
+        itemExistente.cantidad += 1;
+    } else {
+        carritoMenuLocal.push({ id, nombre, precio, cantidad: 1 });
+    }
+    actualizarCarrito();
+}
+
+function eliminarDelCarrito(id) {
+    carritoMenuLocal = carritoMenuLocal.filter(i => i.id !== id);
+    actualizarCarrito();
+}
+
+function cambiarCantidad(id, cambio) {
+    const item = carritoMenuLocal.find(i => i.id === id);
+    if (item) {
+        item.cantidad += cambio;
+        if (item.cantidad <= 0) {
+            eliminarDelCarrito(id);
+        } else {
+            actualizarCarrito();
+        }
+    }
+}
+
+function actualizarCarrito() {
+    const carritoItems = document.getElementById('carrito-items');
+    const carritoTotal = document.getElementById('carrito-total');
+    const btnFinalizar = document.getElementById('btn-finalizar-pedido');
+    
+    if (carritoMenuLocal.length === 0) {
+        carritoItems.innerHTML = '<p class="carrito-vacio">Tu carrito está vacío</p>';
+        carritoTotal.textContent = '$0';
+        btnFinalizar.disabled = true;
+        return;
+    }
+    
+    let total = 0;
+    let htmlCarrito = '';
+    let htmlResumen = '';
+    
+    carritoMenuLocal.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        
+        // HTML para el carrito lateral
+        htmlCarrito += `
+            <div class="carrito-item">
+                <div class="carrito-item-info">
+                    <strong>${item.nombre}</strong>
+                    <span class="carrito-item-precio">$${item.precio.toLocaleString()}</span>
+                </div>
+                <div class="carrito-item-cantidad">
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, -1)">-</button>
+                    <span>${item.cantidad}</span>
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, 1)">+</button>
+                </div>
+                <div class="carrito-item-subtotal">
+                    $${subtotal.toLocaleString()}
+                </div>
+            </div>
+        `;
+
+        // HTML para el resumen del modal
+        htmlResumen += `
+            <div class="resumen-item">
+                <span>${item.cantidad} x ${item.nombre}</span>
+                <span>$${subtotal.toLocaleString()}</span>
+            </div>
+        `;
+    });
+    
+    carritoItems.innerHTML = htmlCarrito;
+    carritoTotal.textContent = '$' + total.toLocaleString();
+    btnFinalizar.disabled = false;
+
+    // Actualizar resumen del modal
+    document.getElementById('resumen-items').innerHTML = htmlResumen;
+    document.getElementById('resumen-total').textContent = '$' + total.toLocaleString();
+}
+
+// Filtrar por categoría
+document.querySelectorAll('.categoria-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.categoria-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        const categoria = this.dataset.categoria;
+        const productos = document.querySelectorAll('.producto-card');
+        
+        productos.forEach(producto => {
+            if (categoria === 'todas' || producto.dataset.categoria === categoria) {
+                producto.style.display = 'block';
+            } else {
+                producto.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Inicializar y manejar el modal
+const modal = document.getElementById('modal-pedido');
+const btnFinalizar = document.getElementById('btn-finalizar-pedido');
+const spanClose = document.querySelector('.modal-close');
+
+const isAuth = {{ 'true' if current_user.is_authenticated else 'false' }};
+btnFinalizar.onclick = function() {
+    if (!isAuth) {
+        alert('Debes iniciar sesión para continuar con tu pedido');
+        window.location.href = '{{ url_for("auth.login") }}';
+        return;
+    }
+    if (carritoMenuLocal.length > 0) {
+        modal.style.display = 'block';
+    }
+}
+
+spanClose.onclick = function() {
+    cerrarModal();
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        cerrarModal();
+    }
+}
+
+function cerrarModal() {
+    modal.style.display = 'none';
+}
+
+async function mostrarSelectorMesa() {
+    if (!isAuth) {
+        alert('Debes iniciar sesión para seleccionar una mesa');
+        window.location.href = '{{ url_for("auth.login") }}';
+        return;
+    }
+    document.getElementById('selector-mesa').style.display = 'block';
+    document.getElementById('btn-para-mesa').style.display = 'none';
+
+    // Cargar mesas disponibles desde la API
+    try {
+        const res = await fetch('{{ url_for("main.api_mesas") }}');
+        const mesas = await res.json();
+        const select = document.getElementById('select-mesa');
+        const ayudaMesas = document.getElementById('ayuda-mesas');
+        
+        select.innerHTML = '<option value="" disabled selected>Elige una mesa disponible</option>';
+        
+        if (Array.isArray(mesas) && mesas.length > 0) {
+            // Agrupar mesas por tipo
+            const mesasPorTipo = {
+                'vip': [],
+                'terraza': [],
+                'interior': []
+            };
+            
+            mesas.forEach(m => {
+                const tipo = m.tipo || 'interior';
+                if (mesasPorTipo[tipo]) {
+                    mesasPorTipo[tipo].push(m);
+                }
+            });
+            
+            // Crear opciones agrupadas por tipo
+            const tipos = {
+                'vip': '⭐ VIP',
+                'terraza': '🌿 Terraza',
+                'interior': '🏠 Interior'
+            };
+            
+            Object.keys(tipos).forEach(tipoKey => {
+                if (mesasPorTipo[tipoKey].length > 0) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = tipos[tipoKey];
+                    
+                    mesasPorTipo[tipoKey]
+                        .sort((a, b) => a.numero - b.numero)
+                        .forEach(m => {
+                            const opt = document.createElement('option');
+                            opt.value = m.id;
+                            opt.textContent = `Mesa ${m.numero} - ${m.capacidad} personas`;
+                            optgroup.appendChild(opt);
+                        });
+                    
+                    select.appendChild(optgroup);
+                }
+            });
+            
+            // Actualizar mensaje de ayuda
+            ayudaMesas.innerHTML = `
+                <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                <small style="color: #2c3e50; margin: 0;">
+                    <strong>${mesas.length} mesas disponibles</strong> - Selecciona la mesa donde estás ubicado
+                </small>
+            `;
+            ayudaMesas.style.background = '#d4edda';
+            ayudaMesas.style.borderColor = '#27ae60';
+        } else {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'No hay mesas disponibles en este momento';
+            select.appendChild(opt);
+            select.disabled = true;
+            
+            // Mensaje de error
+            ayudaMesas.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i>
+                <small style="color: #c0392b; margin: 0;">
+                    <strong>Sin mesas disponibles</strong> - Todas están ocupadas. Por favor, intenta más tarde.
+                </small>
+            `;
+            ayudaMesas.style.background = '#f8d7da';
+            ayudaMesas.style.borderColor = '#e74c3c';
+        }
+    } catch (e) {
+        console.error('Error cargando mesas:', e);
+        const select = document.getElementById('select-mesa');
+        const ayudaMesas = document.getElementById('ayuda-mesas');
+        
+        select.innerHTML = '<option value="" disabled selected>Error cargando mesas</option>';
+        select.disabled = true;
+        
+        ayudaMesas.innerHTML = `
+            <i class="fas fa-times-circle" style="color: #e74c3c;"></i>
+            <small style="color: #c0392b; margin: 0;">
+                Error al cargar las mesas. Por favor, recarga la página.
+            </small>
+        `;
+        ayudaMesas.style.background = '#f8d7da';
+        ayudaMesas.style.borderColor = '#e74c3c';
+    }
+}
+
+function mostrarSelectorLlevar() {
+    if (!isAuth) {
+        alert('Debes iniciar sesión para pedidos para llevar');
+        window.location.href = '{{ url_for("auth.login") }}';
+        return;
+    }
+    document.getElementById('selector-llevar').style.display = 'block';
+    const btn = document.getElementById('btn-para-llevar');
+    if (btn) btn.style.display = 'none';
+}
+
+function finalizarPedidoMesa() {
+    const mesaSeleccionada = document.getElementById('select-mesa').value;
+    if (!mesaSeleccionada) {
+        alert('Por favor, selecciona el número de tu mesa.');
+        return;
+    }
+    
+    // Obtener información completa de la mesa
+    const selectElement = document.getElementById('select-mesa');
+    const mesaTexto = selectElement.options[selectElement.selectedIndex].text;
+    
+    // Calcular total del pedido
+    const totalPedido = carritoMenuLocal.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const cantidadItems = carritoMenuLocal.reduce((sum, item) => sum + item.cantidad, 0);
+    
+    // Confirmar con el usuario que está en esa mesa
+    const mensaje = `🪑 Confirmar Pedido para ${mesaTexto}\n\n` +
+                    `📦 ${cantidadItems} producto(s) en tu pedido\n` +
+                    `💰 Total: $${totalPedido.toLocaleString()}\n\n` +
+                    `⚠️ IMPORTANTE: Asegúrate de seleccionar la mesa correcta.\n` +
+                    `Si la mesa es incorrecta, tu pedido podría ir a otra ubicación.\n\n` +
+                    `¿Confirmas que estás sentado en esta mesa?`;
+    
+    if (!confirm(mensaje)) {
+        return;
+    }
+    
+    finalizarPedido('mesa', mesaSeleccionada);
+}
+
+function finalizarPedido(tipo, mesa = null, extra = {}) {
+    if (carritoMenuLocal.length === 0) {
+        alert('Tu carrito está vacío');
+        return;
+    }
+    
+    // Preparar datos del pedido
+    const datosPedido = {
+        tipo: tipo,
+        mesa_id: mesa,
+        items: carritoMenuLocal.map(item => ({
+            id: item.id,
+            nombre: item.nombre,
+            precio: item.precio,
+            cantidad: item.cantidad
+        }))
+    };
+    // Merge de datos extra (para llevar)
+    Object.assign(datosPedido, extra);
+    
+    // Enviar al servidor
+    fetch('/pedidos/crear', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosPedido)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let mensaje = '';
+            if (tipo === 'mesa') {
+                mensaje = `¡Pedido para Mesa ${mesa} enviado con éxito! Código: ${data.codigo}`;
+            } else {
+                mensaje = `¡Pedido para llevar confirmado! Código: ${data.codigo}`;
+            }
+            alert(mensaje + '\nTotal: $' + document.getElementById('resumen-total').textContent.replace('$', ''));
+            
+            // Vaciar carrito local del menú
+            carritoMenuLocal = [];
+            actualizarCarrito();
+            cerrarModal();
+        } else {
+            alert('Error al crear el pedido: ' + (data.error || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión. Por favor, intenta nuevamente.');
+    });
+}
+
+function finalizarPedidoLlevar() {
+    const nombre = document.getElementById('nombre_llevar').value.trim();
+    const telefono = document.getElementById('telefono_llevar').value.trim();
+    const hora = document.getElementById('hora_llevar').value;
+    const metodo = document.getElementById('pago_llevar').value;
+    const notas = document.getElementById('notas_llevar').value.trim();
+    
+    if (!nombre || !telefono || !metodo) {
+        alert('Por favor completa Nombre, Teléfono y Método de pago.');
+        return;
+    }
+    
+    // Construir instrucciones
+    let instrucciones = 'PARA LLEVAR';
+    if (hora) instrucciones += ` | Retiro: ${hora}`;
+    if (notas) instrucciones += ` | Notas: ${notas}`;
+    
+    const extra = {
+        direccion_entrega: 'PARA LLEVAR',
+        metodo_pago: metodo,
+        telefono_contacto: telefono,
+        nombre_receptor: nombre,
+        instrucciones_entrega: instrucciones
+    };
+    finalizarPedido('llevar', null, extra);
+}
+
+// Inicializar el carrito al cargar
+document.addEventListener('DOMContentLoaded', actualizarCarrito);
+
+// Asegurar que el selector de mesa se oculte al cerrar el modal
+document.querySelector('.btn-outline').addEventListener('click', () => {
+    document.getElementById('selector-mesa').style.display = 'none';
+    document.getElementById('btn-para-mesa').style.display = 'inline-block';
+    const selLlevar = document.getElementById('selector-llevar');
+    if (selLlevar) selLlevar.style.display = 'none';
+    const btnLlevar = document.getElementById('btn-para-llevar');
+    if (btnLlevar) btnLlevar.style.display = 'inline-block';
+});
+
+// Función para buscar productos
+document.getElementById('search-productos').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const productos = document.querySelectorAll('.producto-card');
+    
+    productos.forEach(producto => {
+        const nombre = producto.querySelector('.producto-nombre').textContent.toLowerCase();
+        const descripcion = producto.querySelector('.producto-descripcion').textContent.toLowerCase();
+        
+        if (nombre.includes(searchTerm) || descripcion.includes(searchTerm)) {
+            producto.style.display = 'block';
+        } else {
+            producto.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

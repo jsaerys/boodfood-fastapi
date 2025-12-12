@@ -1,0 +1,466 @@
+<!-- templates/admin/mesas_content.html -->
+
+<!-- Estadísticas y Controles -->
+<div class="mesas-header">
+  <div class="mesas-stats">
+    <div class="mesa-stat disponible">
+      <div class="stat-icon">✅</div>
+      <div class="stat-data">
+        <div class="stat-number" id="mesas-disponibles">0</div>
+        <div class="stat-label">Disponibles</div>
+      </div>
+    </div>
+    <div class="mesa-stat ocupada">
+      <div class="stat-icon">🔒</div>
+      <div class="stat-data">
+        <div class="stat-number" id="mesas-ocupadas">0</div>
+        <div class="stat-label">Ocupadas</div>
+      </div>
+    </div>
+    <div class="mesa-stat total">
+      <div class="stat-icon">🪑</div>
+      <div class="stat-data">
+        <div class="stat-number" id="mesas-total">0</div>
+        <div class="stat-label">Total Mesas</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="mesas-controls">
+    <button class="btn-mesa-action btn-nueva" onclick="window.abrirModalCrearMesa()">
+      ➕ Nueva Mesa
+    </button>
+    <button class="btn-mesa-action btn-refresh" onclick="window.cargarMesas()">
+      🔄 Actualizar
+    </button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="mesas-filters">
+  <div class="filter-group">
+    <label>🔍 Buscar:</label>
+    <input type="text" id="filter-buscar-mesa" placeholder="Número, ubicación..." onkeyup="window.filtrarMesas()">
+  </div>
+  <div class="filter-group">
+    <label>📍 Ubicación:</label>
+    <select id="filter-ubicacion" onchange="window.filtrarMesas()">
+      <option value="todas">Todas</option>
+      <option value="interior">Interior</option>
+      <option value="terraza">Terraza</option>
+      <option value="vip">VIP</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>📊 Estado:</label>
+    <select id="filter-estado" onchange="window.filtrarMesas()">
+      <option value="todas">Todas</option>
+      <option value="disponible">Disponibles</option>
+      <option value="ocupada">Ocupadas</option>
+    </select>
+  </div>
+  <button class="btn-limpiar" onclick="window.limpiarFiltrosMesas()">✖ Limpiar</button>
+</div>
+
+<!-- Vista de Mesas (Grid Visual) -->
+<div class="mesas-vista-selector">
+  <button class="vista-btn active" data-vista="grid" onclick="window.cambiarVistaMesas('grid')">
+    🎯 Vista Grid
+  </button>
+  <button class="vista-btn" data-vista="lista" onclick="window.cambiarVistaMesas('lista')">
+    📋 Vista Lista
+  </button>
+</div>
+
+<!-- Container de Mesas -->
+<div id="mesas-container" class="mesas-grid-view">
+  <div class="loading-mesas">
+    <div class="spinner"></div>
+    <p>Cargando mesas...</p>
+  </div>
+</div>
+
+<style>
+/* Header */
+.mesas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.mesas-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mesa-stat {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.mesa-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.mesa-stat.disponible { border-left: 4px solid #10b981; }
+.mesa-stat.ocupada { border-left: 4px solid #f59e0b; }
+.mesa-stat.total { border-left: 4px solid #6366f1; }
+
+.stat-icon {
+  font-size: 32px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Controles */
+.mesas-controls {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-mesa-action {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+}
+
+.btn-nueva {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-nueva:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-refresh {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-refresh:hover {
+  background: #e5e7eb;
+}
+
+/* Filtros */
+.mesas-filters {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.btn-limpiar {
+  padding: 10px 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-limpiar:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Selector de Vista */
+.mesas-vista-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  width: fit-content;
+}
+
+.vista-btn {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  color: #6b7280;
+}
+
+.vista-btn.active {
+  background: #6366f1;
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Vista Grid */
+.mesas-grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.mesa-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.mesa-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+
+.mesa-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.mesa-card.disponible {
+  border: 2px solid #10b981;
+}
+
+.mesa-card.disponible::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.mesa-card.ocupada {
+  border: 2px solid #f59e0b;
+  opacity: 0.8;
+}
+
+.mesa-card.ocupada::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.mesa-numero {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.mesa-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.mesa-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.mesa-badge.disponible {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.mesa-badge.ocupada {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.mesa-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.mesa-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.mesa-btn.editar {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.mesa-btn.editar:hover {
+  background: #bfdbfe;
+}
+
+.mesa-btn.toggle {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.mesa-btn.toggle:hover {
+  background: #fde68a;
+}
+
+/* Vista Lista */
+.mesas-list-view {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.mesas-list-view table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mesas-list-view thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.mesas-list-view th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mesas-list-view td {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.mesas-list-view tr:hover {
+  background: #f9fafb;
+}
+
+/* Loading */
+.loading-mesas {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.spinner {
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #6366f1;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mesas-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .mesas-controls {
+    width: 100%;
+  }
+  
+  .btn-mesa-action {
+    flex: 1;
+  }
+  
+  .mesas-filters {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .mesas-grid-view {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

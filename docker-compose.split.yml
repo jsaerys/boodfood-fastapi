@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: boodfood-frontend
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+      - DEBUG=False
+      - DATABASE_URL=${DATABASE_URL:-mysql+pymysql://user:password@db:3306/boodfood}
+    volumes:
+      - ./static/uploads:/app/static/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - boodfood-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: boodfood-fastapi
+    ports:
+      - "3311:3311"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-mysql+pymysql://user:password@db:3306/boodfood}
+    volumes:
+      - ./static/uploads:/app/static/uploads
+      - ./logs:/app/logs
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - boodfood-network
+
+  db:
+    image: mysql:8.0
+    container_name: boodfood-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-boodfood}
+      MYSQL_USER: ${DB_USER:-boodfood}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-boodfood123}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - boodfood-network
+
+volumes:
+  db_data:
+
+networks:
+  boodfood-network:
+    driver: bridge

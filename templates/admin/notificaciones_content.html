@@ -1,0 +1,82 @@
+<!-- templates/admin/notificaciones_content.html -->
+<div class="card">
+  <div class="card-header">
+    <strong>🔔 Centro de Notificaciones</strong>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button class="secondary" onclick="window.marcarTodasLeidas()">✓ Marcar todas como leídas</button>
+      <button class="secondary" onclick="window.limpiarNotificaciones()">🗑️ Limpiar antiguas</button>
+      <button class="secondary" onclick="window.cargarNotificaciones()">🔄 Actualizar</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="notifications-filters">
+      <label>
+        <input type="checkbox" id="filter-notif-nuevos" checked onchange="window.filtrarNotificaciones()">
+        Nuevos Pedidos
+      </label>
+      <label>
+        <input type="checkbox" id="filter-notif-reservas" checked onchange="window.filtrarNotificaciones()">
+        Reservas
+      </label>
+      <label>
+        <input type="checkbox" id="filter-notif-inventario" checked onchange="window.filtrarNotificaciones()">
+        Inventario
+      </label>
+      <label>
+        <input type="checkbox" id="filter-notif-sistema" checked onchange="window.filtrarNotificaciones()">
+        Sistema
+      </label>
+    </div>
+    <div id="notificaciones-list" style="margin-top: 20px;">
+      <!-- Las notificaciones se cargarán dinámicamente -->
+    </div>
+  </div>
+</div>
+
+<style>
+.notifications-filters {
+  display: flex;
+  gap: 20px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+.notifications-filters label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.notification-item {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: background 0.2s;
+}
+.notification-item:hover {
+  background: #f9f9f9;
+}
+.notification-item.unread {
+  background: #e3f2fd;
+  font-weight: 600;
+}
+.notification-icon {
+  font-size: 24px;
+  min-width: 40px;
+  text-align: center;
+}
+.notification-content {
+  flex: 1;
+}
+.notification-time {
+  font-size: 12px;
+  color: #666;
+}
+.notification-actions {
+  display: flex;
+  gap: 5px;
+}
+</style>

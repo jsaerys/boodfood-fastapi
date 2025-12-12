@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements e instalar
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar proyecto
+COPY . .
+
+# Crear directorios necesarios
+RUN mkdir -p static/uploads/menu static/uploads/users
+
+# Exponer puerto para frontend
+EXPOSE 8000
+
+# Ejecutar la app Flask (usa socketio.run para soportar WebSockets)
+CMD ["python", "run_frontend.py"]

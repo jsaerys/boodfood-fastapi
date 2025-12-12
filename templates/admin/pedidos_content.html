@@ -1,0 +1,681 @@
+<!-- templates/admin/pedidos_content.html -->
+<div class="pedidos-admin-container">
+  <!-- Header con Estadísticas -->
+  <div class="pedidos-header">
+    <div class="pedidos-title-section">
+      <h1>📋 Gestión de Pedidos</h1>
+      <button class="btn-refresh" onclick="window.cargarPedidos()" title="Actualizar pedidos">
+        🔄 Actualizar
+      </button>
+    </div>
+    
+    <div class="pedidos-stats-grid">
+      <div class="stat-card stat-pending">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <div class="stat-value" id="pedidos-pendientes">0</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-preparing">
+        <div class="stat-icon">👨‍🍳</div>
+        <div class="stat-content">
+          <div class="stat-value" id="pedidos-preparando">0</div>
+          <div class="stat-label">Preparando</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-sent">
+        <div class="stat-icon">🚚</div>
+        <div class="stat-content">
+          <div class="stat-value" id="pedidos-enviados">0</div>
+          <div class="stat-label">Enviados</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-completed">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-value" id="pedidos-entregados">0</div>
+          <div class="stat-label">Entregados Hoy</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-revenue">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-value" id="ventas-hoy-pedidos">$0</div>
+          <div class="stat-label">Ventas Hoy</div>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-total">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <div class="stat-value" id="pedidos-total">0</div>
+          <div class="stat-label">Total Pedidos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Filtros Avanzados -->
+  <div class="pedidos-filters">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label>🔍 Buscar</label>
+        <input type="text" id="filter-buscar-pedido" placeholder="Buscar por código, cliente, teléfono..." oninput="window.filtrarPedidos()">
+      </div>
+      
+      <div class="filter-group">
+        <label>📦 Tipo</label>
+        <select id="filter-tipo-pedido" onchange="window.filtrarPedidos()">
+          <option value="todos">Todos</option>
+          <option value="mesa">🍽️ Mesa</option>
+          <option value="domicilio">🏠 Domicilio</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>🎯 Estado</label>
+        <select id="filter-estado-pedido" onchange="window.filtrarPedidos()">
+          <option value="todos">Todos</option>
+          <option value="pendiente">⏳ Pendiente</option>
+          <option value="preparando">👨‍🍳 Preparando</option>
+          <option value="enviado">🚚 Enviado</option>
+          <option value="entregado">✅ Entregado</option>
+          <option value="cancelado">❌ Cancelado</option>
+          <option value="rechazado">🚫 Rechazado</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>📅 Fecha</label>
+        <input type="date" id="filter-fecha-pedido" onchange="window.filtrarPedidos()">
+      </div>
+      
+      <div class="filter-group">
+        <label>💳 Pago</label>
+        <select id="filter-metodo-pago" onchange="window.filtrarPedidos()">
+          <option value="todos">Todos</option>
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="tarjeta">💳 Tarjeta</option>
+          <option value="transferencia">🏦 Transferencia</option>
+        </select>
+      </div>
+      
+      <button class="btn-clear-filters" onclick="window.limpiarFiltrosPedidos()" title="Limpiar filtros">
+        🗑️ Limpiar
+      </button>
+    </div>
+  </div>
+  
+  <!-- Contenedor de Pedidos -->
+  <div class="pedidos-content">
+    <div id="pedidos-container" class="loading">
+      <div class="spinner">⏳ Cargando pedidos...</div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Contenedor Principal */
+.pedidos-admin-container {
+  padding: 0;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* Header con Título */
+.pedidos-header {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.pedidos-title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.pedidos-title-section h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.btn-refresh {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-refresh:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Grid de Estadísticas */
+.pedidos-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  background: white;
+  border-left: 4px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+  font-size: 36px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #f1f5f9;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Colores de Estados */
+.stat-pending {
+  border-left-color: #f59e0b;
+}
+.stat-pending .stat-icon {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.stat-preparing {
+  border-left-color: #3b82f6;
+}
+.stat-preparing .stat-icon {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.stat-sent {
+  border-left-color: #8b5cf6;
+}
+.stat-sent .stat-icon {
+  background: #ede9fe;
+  color: #8b5cf6;
+}
+
+.stat-completed {
+  border-left-color: #10b981;
+}
+.stat-completed .stat-icon {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.stat-revenue {
+  border-left-color: #059669;
+}
+.stat-revenue .stat-icon {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.stat-total {
+  border-left-color: #6366f1;
+}
+.stat-total .stat-icon {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+
+/* Filtros */
+.pedidos-filters {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.filters-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: white;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-clear-filters {
+  padding: 10px 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.btn-clear-filters:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+/* Contenedor de Pedidos */
+.pedidos-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  min-height: 400px;
+}
+
+#pedidos-container.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.spinner {
+  font-size: 20px;
+  color: #64748b;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Tabla de Pedidos */
+.pedidos-table-container {
+  overflow-x: auto;
+}
+
+.pedidos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.pedidos-table thead {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.pedidos-table th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.pedidos-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.pedidos-table tbody tr:hover {
+  background: #f8fafc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.pedidos-table td {
+  padding: 12px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-mesa {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.badge-domicilio {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.badge-pendiente {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.badge-preparando {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.badge-enviado {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.badge-entregado {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.badge-cancelado,
+.badge-rechazado {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Select de Estado */
+.estado-select {
+  padding: 6px 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.estado-select:hover {
+  border-color: #3b82f6;
+}
+
+.estado-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Botones de Acción */
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  min-width: 36px;
+  text-align: center;
+}
+
+.btn-view {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.btn-view:hover {
+  background: #3b82f6;
+  color: white;
+  transform: scale(1.1);
+}
+
+.btn-edit {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.btn-edit:hover {
+  background: #f59e0b;
+  color: white;
+  transform: scale(1.1);
+}
+
+.btn-print {
+  background: #f3e8ff;
+  color: #9333ea;
+}
+
+.btn-print:hover {
+  background: #9333ea;
+  color: white;
+  transform: scale(1.1);
+}
+
+.btn-delete {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.btn-delete:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Estado sin pedidos */
+.no-pedidos {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+}
+
+.no-pedidos-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.no-pedidos-text {
+  font-size: 18px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.no-pedidos-subtext {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+/* Estilos para Modales */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #1e293b;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #64748b;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-modal:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  transform: rotate(90deg);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .pedidos-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .pedidos-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .filters-row {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+    min-width: 100%;
+  }
+  
+  .pedidos-title-section {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .btn-refresh {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .pedidos-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
