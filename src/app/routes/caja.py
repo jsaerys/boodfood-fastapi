@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from functools import wraps
 from datetime import datetime
-from models import db, Pedido, Mesa
+from ..models import db, Pedido, Mesa
 try:
     from models import Factura
 except ImportError:

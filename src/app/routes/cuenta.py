@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 import os
-from models import db, Usuario, Pedido, Reserva
+from ..models import db, Usuario, Pedido, Reserva
 
 cuenta_bp = Blueprint('cuenta', __name__, url_prefix='/cuenta')
 

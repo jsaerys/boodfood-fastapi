@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from datetime import datetime
 import random
 import string
-from models import db, Reserva, Mesa, Mesero, Servicio
+from ..models import db, Reserva, Mesa, Mesero, Servicio
 import json
 from decimal import Decimal
 

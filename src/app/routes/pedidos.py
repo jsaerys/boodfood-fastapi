@@ -1,14 +1,14 @@
 # routes/pedidos.py
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-from models import db, Pedido, PedidoItem, MenuItem, Inventario, InventarioMovimiento
+from ..models import db, Pedido, PedidoItem, MenuItem, Inventario, InventarioMovimiento
 try:
     from models import Receta
 except ImportError:
     Receta = None
 from datetime import datetime
 import uuid
-from utils.pedido_utils import add_or_update_pedido_item
+from ..utils.pedido_utils import add_or_update_pedido_item
 
 pedidos_bp = Blueprint('pedidos', __name__, url_prefix='/pedidos')
 

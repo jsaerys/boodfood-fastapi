@@ -4,7 +4,7 @@ Incluye endpoints para estadísticas, actividad y alertas.
 """
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
-from models import db, Pedido, Reserva, Mesa, Servicio, Usuario, Inventario
+from ..models import db, Pedido, Reserva, Mesa, Servicio, Usuario, Inventario
 from datetime import datetime, timedelta
 import functools
 

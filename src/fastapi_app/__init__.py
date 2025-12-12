@@ -9,8 +9,9 @@ from contextlib import asynccontextmanager
 import importlib
 import traceback
 
-# Importar rutas desde la nueva carpeta `routers`
-from fastapi_app.routers import mesas, menu, pedidos, reservas, usuarios, auth
+# Importar rutas desde los routers relativos
+from . import routers
+from .routers import mesas, menu, pedidos, reservas, usuarios, auth
 
 
 @asynccontextmanager
@@ -27,7 +28,7 @@ async def lifespan(app: FastAPI):
         # Importar la factory de Flask en tiempo de ejecución para evitar
         # fallos si Flask no está instalado cuando se importa el paquete.
         try:
-            flask_module = importlib.import_module('app')
+            flask_module = importlib.import_module('app.app')
             create_flask_app = getattr(flask_module, 'create_app', None)
         except Exception:
             create_flask_app = None

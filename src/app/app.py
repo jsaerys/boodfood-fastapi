@@ -3,6 +3,10 @@ Aplicación principal BoodFood
 Sistema de gestión para restaurante con reservas, pedidos y múltiples paneles
 """
 import os
+import sys
+
+# Permitir importes desde carpetas padre
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 # Configuración para subir imágenes
 STATIC_FOLDER = 'static'
@@ -31,33 +35,31 @@ def allowed_file(filename):
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_socketio import SocketIO
-import sys
-import os
-
-# Ajustar rutas de importación
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-
-from config.config import config
-from app.models import db, Usuario
 from werkzeug.utils import secure_filename
-from app.socket_events import socketio  # Importar la instancia de SocketIO
 from sqlalchemy.exc import OperationalError, InterfaceError
 
-# Importar blueprints
-from app.routes.auth import auth_bp
-from app.routes.main import main_bp
-from app.routes.reservas import reservas_bp
-from app.routes.pedidos import pedidos_bp
-from app.routes.cocina import cocina_bp
-from app.routes.caja import caja_bp
-from app.routes.admin import admin_bp
-from app.routes.api_routes import api_bp
-from app.routes.cuenta import cuenta_bp
+# Importar desde dentro del módulo (importes relativos)
+from .models import db, Usuario
+from .socket_events import socketio  # Importar la instancia de SocketIO
 
-from app.routes.admin_api import admin_api_bp
+# Importar blueprints
+from .routes.auth import auth_bp
+from .routes.main import main_bp
+from .routes.reservas import reservas_bp
+from .routes.pedidos import pedidos_bp
+from .routes.cocina import cocina_bp
+from .routes.caja import caja_bp
+from .routes.admin import admin_bp
+from .routes.api_routes import api_bp
+from .routes.cuenta import cuenta_bp
+
+from .routes.admin_api import admin_api_bp
 
 def create_app(config_name='default'):
     """Factory para crear la aplicación Flask"""
+    # Importar config aquí para evitar ciclos de importación
+    from config.config import config
+    
     app = Flask(__name__)
     # Configuración para subir imágenes (mover aquí evita usar `app` antes de definirla)
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, MENU_UPLOADS)  # Por defecto usa la carpeta del menú

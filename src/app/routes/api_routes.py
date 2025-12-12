@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import text
 from datetime import datetime, timedelta
-from models import db, Categoria, Inventario, MenuItem, Mesa, Mesero, Pedido, PedidoItem, Reserva, Servicio, Usuario
+from ..models import db, Categoria, Inventario, MenuItem, Mesa, Mesero, Pedido, PedidoItem, Reserva, Servicio, Usuario
 from flask_login import login_required, current_user
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')

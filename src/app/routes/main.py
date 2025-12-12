@@ -3,7 +3,7 @@ Rutas principales de la aplicación
 """
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import current_user
-from models import db, MenuItem, Categoria, Servicio, Mesero, Mesa
+from ..models import db, MenuItem, Categoria, Servicio, Mesero, Mesa
 from datetime import datetime
 
 main_bp = Blueprint('main', __name__)

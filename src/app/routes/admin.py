@@ -16,7 +16,7 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 from flask import current_app
 from sqlalchemy import func
-from models import db, MenuItem, Categoria, Usuario, Mesa, Mesero, Servicio, Pedido, PedidoItem, Reserva, Inventario, InventarioMovimiento
+from ..models import db, MenuItem, Categoria, Usuario, Mesa, Mesero, Servicio, Pedido, PedidoItem, Reserva, Inventario, InventarioMovimiento
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 

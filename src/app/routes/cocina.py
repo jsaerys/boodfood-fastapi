@@ -4,7 +4,7 @@ Rutas del panel de cocina
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from functools import wraps
-from models import db, Pedido
+from ..models import db, Pedido
 
 cocina_bp = Blueprint('cocina', __name__, url_prefix='/cocina')
 
