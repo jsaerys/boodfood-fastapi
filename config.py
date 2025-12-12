@@ -12,11 +12,30 @@ class Config:
     
     # Configuración de la base de datos MySQL remota
     SQLALCHEMY_DATABASE_URI = (
-        'mysql+pymysql://brandon:brandonc@isladigital.xyz:3311/f58_brandon'
+        'mysql+pymysql://brandon:brandonc@mysql.enlinea.sbs:3311/f58_brandon'
     )
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
+    # Opciones del engine para conexiones estables a MySQL remoto
+    # - pool_pre_ping: detecta conexiones caídas antes de usarlas
+    # - pool_recycle: recicla conexiones inactivas para evitar timeouts del servidor
+    # - pool_timeout: tiempo de espera al obtener conexión del pool
+    # - pool_size / max_overflow: tamaño del pool para esta app
+    # - connect_args: timeouts a nivel de PyMySQL
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 280,  # menor que el wait_timeout típico del servidor
+        "pool_timeout": 10,
+        "pool_size": 5,
+        "max_overflow": 10,
+        "connect_args": {
+            "connect_timeout": 10,
+            "read_timeout": 30,
+            "write_timeout": 30,
+            "charset": "utf8mb4",
+        },
+    }
     
     # Configuración de sesiones
     SESSION_COOKIE_SECURE = False  # Cambiar a True en producción con HTTPS

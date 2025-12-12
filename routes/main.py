@@ -4,6 +4,7 @@ Rutas principales de la aplicación
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import current_user
 from models import db, MenuItem, Categoria, Servicio, Mesero, Mesa
+from datetime import datetime
 
 main_bp = Blueprint('main', __name__)
 
@@ -11,7 +12,23 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     """Página principal"""
-    return render_template('index.html')
+    try:
+        # Obtener items destacados para mostrar en la página principal
+        items_destacados = MenuItem.query.filter_by(
+            disponible=True,
+            destacado=True
+        ).order_by(MenuItem.orden).limit(6).all()
+        
+        # Si no hay items destacados, tomar los primeros 6 disponibles
+        if not items_destacados:
+            items_destacados = MenuItem.query.filter_by(
+                disponible=True
+            ).order_by(MenuItem.orden).limit(6).all()
+        
+        return render_template('index.html', items_destacados=items_destacados)
+    except Exception as e:
+        print(f"Error en /: {e}")
+        return render_template('index.html', items_destacados=[])
 
 
 @main_bp.route('/menu')
@@ -22,13 +39,8 @@ def menu():
         items = MenuItem.query.filter_by(disponible=True).all()
         
         # Organizar items por categoría
-        menu_por_categoria = {}
-        for categoria in categorias:
-            menu_por_categoria[categoria.nombre] = [
-                item for item in items if item.categoria_id == categoria.id
-            ]
-        
-        return render_template('menu.html', categorias=categorias, menu_por_categoria=menu_por_categoria)
+        # Se pasa la lista plana de items y las categorías para permitir el filtrado por JS
+        return render_template('menu.html', categorias=categorias, items=items)
     except Exception as e:
         print(f"Error en /menu: {e}")
         return render_template('menu.html', categorias=[], menu_por_categoria={})
@@ -63,14 +75,10 @@ def reservas():
         return render_template('auth/login_required.html', redirect_to='main.reservas')
     
     try:
-        mesas = Mesa.query.filter_by(disponible=True).all()
-        meseros = Mesero.query.filter_by(disponible=True).all()
-        servicios_list = Servicio.query.filter_by(disponible=True).all()
-        
-        return render_template('reservas.html', mesas=mesas, meseros=meseros, servicios=servicios_list)
+        return render_template('reservas.html', now=datetime.now())
     except Exception as e:
         print(f"Error en /reservas: {e}")
-        return render_template('reservas.html', mesas=[], meseros=[], servicios=[])
+        return render_template('reservas.html', now=datetime.now())
 
 
 @main_bp.route('/domicilios')
@@ -111,10 +119,37 @@ def api_menu():
 
 @main_bp.route('/api/mesas')
 def api_mesas():
-    """API para obtener mesas disponibles"""
+    """API para obtener mesas disponibles (excluyendo las ocupadas por otros usuarios)"""
     try:
+        from models import Pedido
+        
+        # Obtener todas las mesas disponibles
         mesas = Mesa.query.filter_by(disponible=True).all()
-        return jsonify([mesa.to_dict() for mesa in mesas])
+        
+        # Si el usuario está autenticado, obtener pedidos activos de OTROS usuarios
+        if current_user.is_authenticated:
+            pedidos_activos = Pedido.query.filter(
+                Pedido.mesa_id.isnot(None),
+                Pedido.estado.in_(['pendiente', 'preparando', 'enviado']),
+                Pedido.usuario_id != current_user.id  # Excluir pedidos del usuario actual
+            ).all()
+        else:
+            # Si no está autenticado, mostrar todas las mesas ocupadas
+            pedidos_activos = Pedido.query.filter(
+                Pedido.mesa_id.isnot(None),
+                Pedido.estado.in_(['pendiente', 'preparando', 'enviado'])
+            ).all()
+        
+        # IDs de mesas ocupadas por otros
+        mesas_ocupadas_ids = set(p.mesa_id for p in pedidos_activos if p.mesa_id)
+        
+        # Filtrar mesas que no estén ocupadas por otros
+        mesas_disponibles = [
+            mesa.to_dict() for mesa in mesas 
+            if mesa.id not in mesas_ocupadas_ids
+        ]
+        
+        return jsonify(mesas_disponibles)
     except Exception as e:
         print(f"Error en /api/mesas: {e}")
         return jsonify([])

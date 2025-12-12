@@ -1,0 +1,1005 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Cuenta - BoodFood{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Mi Cuenta</h1>
+        <p>Gestiona tus pedidos, reservas y perfil</p>
+    </div>
+</div>
+
+<div class="cuenta-container">
+    <div class="container">
+        <!-- Tabs de navegación -->
+        <div class="cuenta-tabs">
+            <button class="tab-btn active" data-tab="pedidos">
+                📦 Mis Pedidos
+            </button>
+            <button class="tab-btn" data-tab="reservas">
+                📅 Mis Reservas
+            </button>
+            <button class="tab-btn" data-tab="perfil">
+                👤 Mi Perfil
+            </button>
+        </div>
+
+        <!-- Contenido de Tabs -->
+        <div class="cuenta-content">
+            <!-- Tab: Mis Pedidos -->
+            <div id="tab-pedidos" class="tab-content active">
+                <div class="tab-header">
+                    <h2>Mis Pedidos</h2>
+                    <button class="btn btn-primary" onclick="window.location.href='{{ url_for('main.domicilios') }}'">
+                        ➕ Nuevo Pedido
+                    </button>
+                </div>
+                
+                <div id="lista-pedidos" class="lista-items">
+                    <div class="loading">Cargando pedidos...</div>
+                </div>
+            </div>
+
+            <!-- Tab: Mis Reservas -->
+            <div id="tab-reservas" class="tab-content">
+                <div class="tab-header">
+                    <h2>Mis Reservas</h2>
+                    <button class="btn btn-primary" onclick="window.location.href='{{ url_for('main.reservas') }}'">
+                        ➕ Nueva Reserva
+                    </button>
+                </div>
+                
+                <div id="lista-reservas" class="lista-items">
+                    <div class="loading">Cargando reservas...</div>
+                </div>
+            </div>
+
+            <!-- Tab: Mi Perfil -->
+            <div id="tab-perfil" class="tab-content">
+                <div class="tab-header">
+                    <h2>Mi Perfil</h2>
+                </div>
+                
+                <div class="perfil-layout">
+                    <div class="perfil-foto-section">
+                        <div class="foto-perfil-wrapper">
+                                <img id="foto-perfil" src="{{ current_user.foto_perfil if current_user.foto_perfil else 'https://ui-avatars.com/api/?name=' + current_user.nombre|urlencode + '&background=random&size=200' }}" alt="Foto de perfil" onerror="this.src='https://ui-avatars.com/api/?name=User&background=random&size=200'">
+                            <div class="foto-overlay">
+                                <label for="input-foto" class="btn-cambiar-foto">
+                                    📷 Cambiar Foto
+                                </label>
+                                <button type="button" class="btn-eliminar-foto" onclick="eliminarFoto()">🗑️ Eliminar Foto</button>
+                                <input type="file" id="input-foto" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <p class="perfil-rol badge badge-{{ current_user.rol }}">{{ current_user.rol }}</p>
+                    </div>
+
+                    <div class="perfil-form-section">
+                        <form id="form-perfil">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="nombre">Nombre *</label>
+                                    <input type="text" id="nombre" name="nombre" class="form-control" value="{{ current_user.nombre }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="apellido">Apellido *</label>
+                                    <input type="text" id="apellido" name="apellido" class="form-control" value="{{ current_user.apellido or '' }}" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="email">Email *</label>
+                                    <input type="email" id="email" class="form-control" value="{{ current_user.email }}" disabled>
+                                    <small class="form-text">El email no se puede cambiar</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="telefono">Teléfono *</label>
+                                    <input type="tel" id="telefono" name="telefono" class="form-control" value="{{ current_user.telefono or '' }}" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="direccion">Dirección</label>
+                                <textarea id="direccion" name="direccion" class="form-control" rows="2">{{ current_user.direccion or '' }}</textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ciudad">Ciudad</label>
+                                    <input type="text" id="ciudad" name="ciudad" class="form-control" value="{{ current_user.ciudad or '' }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="codigo_postal">Código Postal</label>
+                                    <input type="text" id="codigo_postal" name="codigo_postal" class="form-control" value="{{ current_user.codigo_postal or '' }}">
+                                </div>
+                            </div>
+
+                            <hr>
+                            <h3>Cambiar Contraseña</h3>
+                            <p class="form-text">Deja en blanco si no deseas cambiar tu contraseña</p>
+
+                            <div class="form-group">
+                                <label for="password_nueva">Nueva Contraseña</label>
+                                <input type="password" id="password_nueva" name="password_nueva" class="form-control" minlength="6">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password_confirmar">Confirmar Nueva Contraseña</label>
+                                <input type="password" id="password_confirmar" class="form-control" minlength="6">
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-lg">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de detalles de pedido -->
+<div id="modal-detalle-pedido" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+        <span class="modal-close" onclick="cerrarModal('modal-detalle-pedido')">&times;</span>
+        <div id="contenido-detalle-pedido"></div>
+    </div>
+</div>
+
+<!-- Modal de detalles de reserva -->
+<div id="modal-detalle-reserva" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
+        <span class="modal-close" onclick="cerrarModal('modal-detalle-reserva')">&times;</span>
+        <div id="contenido-detalle-reserva"></div>
+    </div>
+</div>
+
+<script>
+// Fallback avatar para el usuario actual
+const fallbackAvatar = "https://ui-avatars.com/api/?name={{ current_user.nombre|urlencode }}&background=random&size=200";
+// ===== TABS =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const tabName = this.dataset.tab;
+        
+        // Actualizar botones activos
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Actualizar contenido activo
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById('tab-' + tabName).classList.add('active');
+        
+        // Cargar datos si es necesario
+        if (tabName === 'pedidos') {
+            cargarPedidos();
+        } else if (tabName === 'reservas') {
+            cargarReservas();
+        }
+    });
+});
+
+// ===== CARGAR PEDIDOS =====
+async function cargarPedidos() {
+    try {
+        const res = await fetch('/cuenta/api/mis-pedidos');
+        const data = await res.json();
+        
+        if (!data.success) throw new Error(data.error);
+        
+        const lista = document.getElementById('lista-pedidos');
+        
+        if (data.pedidos.length === 0) {
+            lista.innerHTML = '<div class="empty-state">📦 No tienes pedidos aún. <a href="{{ url_for("main.domicilios") }}">Haz tu primer pedido</a></div>';
+            return;
+        }
+        
+        let html = '';
+        data.pedidos.forEach(pedido => {
+            const tipo = pedido.direccion_entrega ? 'Domicilio' : 'Mesa';
+            const estadoClass = {
+                'pendiente': 'warning',
+                'preparando': 'info',
+                'enviado': 'primary',
+                'entregado': 'success',
+                'cancelado': 'danger'
+            }[pedido.estado] || 'secondary';
+            
+            const puedeCancel = ['pendiente', 'preparando'].includes(pedido.estado);
+            
+            html += `
+                <div class="item-card pedido-card">
+                    <div class="item-header">
+                        <div>
+                            <h3>Pedido #${pedido.codigo_pedido || pedido.id}</h3>
+                            <span class="badge badge-${estadoClass}">${pedido.estado}</span>
+                            <span class="badge badge-secondary">${tipo}</span>
+                        </div>
+                        <div class="item-fecha">${formatearFecha(pedido.fecha_pedido)}</div>
+                    </div>
+                    <div class="item-body">
+                        <p><strong>Total:</strong> ${formatearMoneda(pedido.total)}</p>
+                        <p><strong>Método de pago:</strong> ${(pedido.metodo_pago || 'efectivo').toUpperCase()}</p>
+                        ${pedido.direccion_entrega ? `<p><strong>Dirección:</strong> ${pedido.direccion_entrega}</p>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-sm btn-outline" onclick="verDetallePedido(${pedido.id})">Ver Detalles</button>
+                        ${puedeCancel ? `<button class="btn btn-sm btn-danger" onclick="cancelarPedido(${pedido.id})">Cancelar</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        lista.innerHTML = html;
+    } catch (err) {
+        document.getElementById('lista-pedidos').innerHTML = '<div class="error">Error al cargar pedidos: ' + err.message + '</div>';
+    }
+}
+
+// ===== CARGAR RESERVAS =====
+async function cargarReservas() {
+    try {
+        const res = await fetch('/cuenta/api/mis-reservas');
+        const data = await res.json();
+        
+        if (!data.success) throw new Error(data.error);
+        
+        const lista = document.getElementById('lista-reservas');
+        
+        if (data.reservas.length === 0) {
+            lista.innerHTML = '<div class="empty-state">📅 No tienes reservas aún. <a href="{{ url_for("main.reservas") }}">Haz tu primera reserva</a></div>';
+            return;
+        }
+        
+        let html = '';
+        
+        // Cargar todos los servicios para poder obtener nombres
+        let serviciosMap = {};
+        try {
+            const srvRes = await fetch('/api/servicios');
+            const servicios = await srvRes.json();
+            if (Array.isArray(servicios)) {
+                servicios.forEach(s => { serviciosMap[s.id] = s; });
+            }
+        } catch (e) { /* ignorar */ }
+        
+        data.reservas.forEach(reserva => {
+            // Parsear notas_especiales para identificar el tipo de servicio
+            let servicioTipo = null;
+            let servicioResumen = '';
+            let servicioNombre = '';
+            try {
+                const notas = typeof reserva.notas_especiales === 'string' ? JSON.parse(reserva.notas_especiales || '{}') : (reserva.notas_especiales || {});
+                if (notas && notas.tipo_servicio) {
+                    servicioTipo = notas.tipo_servicio;
+                    const servicioId = notas.servicio_id;
+                    if (servicioId && serviciosMap[servicioId]) {
+                        servicioNombre = serviciosMap[servicioId].nombre;
+                    }
+                    const d = notas.detalles || {};
+                    if (servicioTipo === 'billar') {
+                        servicioResumen = `${reserva.mesa_asignada ? 'Mesa ' + reserva.mesa_asignada : ''}`.trim();
+                    } else if (servicioTipo === 'evento') {
+                        const tipoEv = d.tipo_evento ? `(${d.tipo_evento})` : '';
+                        servicioResumen = `${reserva.numero_personas || ''} invitado(s) ${tipoEv}`.trim();
+                    } else if (servicioTipo === 'piscina') {
+                        const horas = d.duracion_horas || reserva.duracion_estimada;
+                        const ninos = d.area_ninos === 'si' ? ' • área niños' : '';
+                        servicioResumen = `${horas ? horas + 'h' : ''}${ninos}`.trim();
+                    }
+                }
+            } catch (e) { /* ignorar */ }
+            const estadoClass = {
+                'pendiente': 'warning',
+                'confirmada': 'success',
+                'completada': 'info',
+                'cancelada': 'danger',
+                'no_asistio': 'secondary'
+            }[reserva.estado] || 'secondary';
+            
+            const puedeCancelar = ['pendiente', 'confirmada'].includes(reserva.estado);
+            
+            html += `
+                <div class="item-card reserva-card">
+                    <div class="item-header">
+                        <div>
+                            <h3>Reserva #${reserva.codigo_reserva || reserva.id}</h3>
+                            <span class="badge badge-${estadoClass}">${reserva.estado}</span>
+                        </div>
+                        <div class="item-fecha">${formatearFecha(reserva.fecha)} - ${reserva.hora}</div>
+                    </div>
+                    <div class="item-body">
+                        <p><strong>Personas:</strong> ${reserva.numero_personas}</p>
+                        <p><strong>Nombre:</strong> ${reserva.nombre_reserva}</p>
+                        ${servicioNombre ? `<p><strong>Servicio:</strong> ${servicioNombre}${servicioResumen ? ' - ' + servicioResumen : ''}</p>` : (servicioTipo ? `<p><strong>Servicio:</strong> ${servicioTipo}${servicioResumen ? ' - ' + servicioResumen : ''}</p>` : '')}
+                        ${reserva.mesa_asignada ? `<p><strong>Mesa:</strong> ${reserva.mesa_asignada}</p>` : ''}
+                        ${reserva.zona_mesa ? `<p><strong>Zona:</strong> ${reserva.zona_mesa}</p>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-sm btn-outline" onclick="verDetalleReserva(${reserva.id})">Ver Detalles</button>
+                        ${puedeCancelar ? `<button class="btn btn-sm btn-danger" onclick="cancelarReserva(${reserva.id})">Cancelar</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        lista.innerHTML = html;
+    } catch (err) {
+        document.getElementById('lista-reservas').innerHTML = '<div class="error">Error al cargar reservas: ' + err.message + '</div>';
+    }
+}
+
+// ===== CANCELAR PEDIDO =====
+async function cancelarPedido(id) {
+    if (!confirm('¿Estás seguro de que deseas cancelar este pedido?')) return;
+    
+    try {
+        const res = await fetch(`/cuenta/api/cancelar-pedido/${id}`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (!data.success) throw new Error(data.error);
+        
+        alert('✅ ' + data.message);
+        cargarPedidos();
+    } catch (err) {
+        alert('❌ ' + err.message);
+    }
+}
+
+// ===== CANCELAR RESERVA =====
+async function cancelarReserva(id) {
+    if (!confirm('¿Estás seguro de que deseas cancelar esta reserva?')) return;
+    
+    try {
+        const res = await fetch(`/cuenta/api/cancelar-reserva/${id}`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (!data.success) throw new Error(data.error);
+        
+        alert('✅ ' + data.message);
+        cargarReservas();
+    } catch (err) {
+        alert('❌ ' + err.message);
+    }
+}
+
+// ===== VER DETALLE PEDIDO =====
+async function verDetallePedido(id) {
+    try {
+        const res = await fetch(`/api/pedidos/${id}`);
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Error al cargar el pedido');
+        }
+        const pedido = await res.json();
+        
+        if (!pedido || !pedido.id) {
+            throw new Error('Datos de pedido inválidos');
+        }
+        
+        const tipo = pedido.direccion_entrega ? 'Domicilio' : 'Mesa';
+        
+        let html = `
+            <h2>🍽️ Pedido #${pedido.codigo_pedido || pedido.id}</h2>
+            <div class="detalle-info">
+                <p><strong>Estado:</strong> <span class="badge badge-${pedido.estado}">${pedido.estado}</span></p>
+                <p><strong>Tipo:</strong> ${tipo}</p>
+                <p><strong>Fecha:</strong> ${formatearFecha(pedido.fecha_pedido)}</p>
+                <p><strong>Método de pago:</strong> ${(pedido.metodo_pago || 'efectivo').toUpperCase()}</p>
+                ${pedido.direccion_entrega ? `<p><strong>Dirección:</strong> ${pedido.direccion_entrega}</p>` : ''}
+                ${pedido.telefono_contacto ? `<p><strong>Teléfono:</strong> ${pedido.telefono_contacto}</p>` : ''}
+            </div>
+            
+            <h3>Items del Pedido</h3>
+            <table class="tabla-items">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cant.</th>
+                        <th>Precio</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(pedido.items || []).map(item => `
+                        <tr>
+                            <td>${item.nombre_item}</td>
+                            <td>${item.cantidad}</td>
+                            <td>${formatearMoneda(item.precio_unitario)}</td>
+                            <td><strong>${formatearMoneda(item.subtotal)}</strong></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            
+            <div class="detalle-total">
+                <strong>TOTAL:</strong> <span class="total-precio">${formatearMoneda(pedido.total)}</span>
+            </div>
+        `;
+        
+        document.getElementById('contenido-detalle-pedido').innerHTML = html;
+        document.getElementById('modal-detalle-pedido').style.display = 'flex';
+    } catch (err) {
+        alert('❌ Error al cargar detalles: ' + err.message);
+    }
+}
+
+// ===== VER DETALLE RESERVA =====
+async function verDetalleReserva(id) {
+    try {
+        const res = await fetch(`/api/reservas/${id}`);
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Error al cargar la reserva');
+        }
+        const reserva = await res.json();
+        
+        if (!reserva || !reserva.id) {
+            throw new Error('Datos de reserva inválidos');
+        }
+        
+        // Intentar parsear servicio si hay notas_especiales (mostrar detalles claros por tipo)
+        let servicioHTML = '';
+        let servicioNombre = '';
+        try {
+            const payload = typeof reserva.notas_especiales === 'string' 
+                ? JSON.parse(reserva.notas_especiales || '{}')
+                : (reserva.notas_especiales || {});
+            
+            if (payload && payload.tipo_servicio) {
+                const tipo = String(payload.tipo_servicio).toLowerCase();
+                const d = payload.detalles || {};
+                const icono = tipo === 'piscina' ? '🏊' : tipo === 'billar' ? '🎱' : tipo === 'evento' ? '🎉' : '⭐';
+                
+                // Intentar obtener nombre del servicio desde la API si hay servicio_id
+                if (payload.servicio_id) {
+                    try {
+                        const srvRes = await fetch(`/api/servicios`);
+                        const servicios = await srvRes.json();
+                        if (Array.isArray(servicios)) {
+                            const srv = servicios.find(s => s.id === payload.servicio_id);
+                            if (srv) servicioNombre = srv.nombre;
+                        }
+                    } catch (e) { /* ignorar */ }
+                }
+
+                if (tipo === 'billar') {
+                    servicioHTML = `
+                        <h3>${icono} Servicio: ${servicioNombre || 'Billar'}</h3>
+                        <div class="detalle-info">
+                            ${reserva.mesa_asignada ? `<p><strong>Mesa:</strong> ${reserva.mesa_asignada}</p>` : ''}
+                            <p><strong>Personas:</strong> ${reserva.numero_personas}</p>
+                            ${reserva.total_reserva ? `<p><strong>Total:</strong> ${formatearMoneda(reserva.total_reserva)}</p>` : ''}
+                        </div>
+                    `;
+                } else if (tipo === 'evento') {
+                    const tipoEvento = d.tipo_evento ? d.tipo_evento : 'Evento';
+                    const notas = d.notas ? d.notas : '';
+                    const descuento = (reserva.numero_personas && reserva.numero_personas > 50) ? '<small style="color:#28a745">(10% descuento aplicado)</small>' : '';
+                    servicioHTML = `
+                        <h3>${icono} Servicio: ${servicioNombre || tipoEvento}</h3>
+                        <div class="detalle-info">
+                            <p><strong>Invitados:</strong> ${reserva.numero_personas} ${descuento}</p>
+                            ${notas ? `<p><strong>Notas:</strong> ${notas}</p>` : ''}
+                            ${reserva.total_reserva ? `<p><strong>Total:</strong> ${formatearMoneda(reserva.total_reserva)}</p>` : ''}
+                        </div>
+                    `;
+                } else if (tipo === 'piscina') {
+                    const horas = d.duracion_horas || reserva.duracion_estimada;
+                    const areaNinos = d.area_ninos === 'si' ? 'Sí' : (d.area_ninos === 'no' ? 'No' : 'N/D');
+                    const descuento = (reserva.numero_personas && reserva.numero_personas > 20) ? '<small style="color:#28a745">(15% descuento grupal)</small>' : '';
+                    servicioHTML = `
+                        <h3>${icono} Servicio: ${servicioNombre || 'Piscina'}</h3>
+                        <div class="detalle-info">
+                            <p><strong>Duración:</strong> ${horas ? horas + ' hora(s)' : 'N/D'}</p>
+                            <p><strong>Personas:</strong> ${reserva.numero_personas} ${descuento}</p>
+                            <p><strong>Área niños:</strong> ${areaNinos}</p>
+                            ${reserva.total_reserva ? `<p><strong>Total:</strong> ${formatearMoneda(reserva.total_reserva)}</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    // Tipo genérico
+                    servicioHTML = `
+                        <h3>${icono} Servicio: ${servicioNombre || payload.tipo_servicio}</h3>
+                    `;
+                }
+            }
+        } catch (e) {
+            // notas_especiales no es JSON; ignorar y no romper la vista
+        }
+        
+        let html = `
+            <h2>📅 Reserva #${reserva.codigo_reserva || reserva.id}</h2>
+            <div class="detalle-info">
+                <p><strong>Estado:</strong> <span class="badge badge-${reserva.estado}">${reserva.estado}</span></p>
+                <p><strong>Fecha:</strong> ${formatearFecha(reserva.fecha)} a las ${reserva.hora}</p>
+                <p><strong>Personas:</strong> ${reserva.numero_personas}</p>
+                <p><strong>Nombre:</strong> ${reserva.nombre_reserva}</p>
+                <p><strong>Email:</strong> ${reserva.email_reserva || 'N/A'}</p>
+                <p><strong>Teléfono:</strong> ${reserva.telefono_reserva || 'N/A'}</p>
+                ${reserva.mesa_asignada ? `<p><strong>Mesa:</strong> ${reserva.mesa_asignada}</p>` : ''}
+                ${reserva.zona_mesa ? `<p><strong>Zona:</strong> ${reserva.zona_mesa}</p>` : ''}
+            </div>
+            
+            ${servicioHTML}
+            
+            ${reserva.total_reserva ? `
+                <div class="detalle-total">
+                    <strong>Total:</strong> <span class="total-precio">${formatearMoneda(reserva.total_reserva)}</span>
+                </div>
+            ` : ''}
+        `;
+        
+        document.getElementById('contenido-detalle-reserva').innerHTML = html;
+        document.getElementById('modal-detalle-reserva').style.display = 'flex';
+    } catch (err) {
+        alert('❌ Error al cargar detalles: ' + err.message);
+    }
+}
+
+// ===== ACTUALIZAR PERFIL =====
+document.getElementById('form-perfil').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const password_nueva = document.getElementById('password_nueva').value;
+    const password_confirmar = document.getElementById('password_confirmar').value;
+    
+    if (password_nueva && password_nueva !== password_confirmar) {
+        alert('❌ Las contraseñas no coinciden');
+        return;
+    }
+    
+    const data = {
+        nombre: document.getElementById('nombre').value,
+        apellido: document.getElementById('apellido').value,
+        telefono: document.getElementById('telefono').value,
+        direccion: document.getElementById('direccion').value,
+        ciudad: document.getElementById('ciudad').value,
+        codigo_postal: document.getElementById('codigo_postal').value,
+    };
+    
+    if (password_nueva) {
+        data.password_nueva = password_nueva;
+    }
+    
+    try {
+        const res = await fetch('/cuenta/api/actualizar-perfil', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        
+        if (!result.success) throw new Error(result.error);
+        
+        alert('✅ ' + result.message);
+        if (password_nueva) {
+            document.getElementById('password_nueva').value = '';
+            document.getElementById('password_confirmar').value = '';
+        }
+    } catch (err) {
+        alert('❌ ' + err.message);
+    }
+});
+
+// Utilidad para actualizar la imagen con cache-busting
+function updateProfilePhoto(url) {
+    const img = document.getElementById('foto-perfil');
+    const sep = url.includes('?') ? '&' : '?';
+    img.src = `${url}${sep}t=${Date.now()}`;
+}
+
+// ===== SUBIR FOTO =====
+document.getElementById('input-foto').addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('foto', file);
+    
+    try {
+        const res = await fetch('/cuenta/api/subir-foto', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        
+        if (!data.success) throw new Error(data.error);
+        
+        // Actualizar imagen con cache-busting
+        updateProfilePhoto(data.foto_url);
+        alert('✅ ' + data.message);
+    } catch (err) {
+        alert('❌ ' + err.message);
+    }
+});
+
+// ===== ELIMINAR FOTO =====
+async function eliminarFoto() {
+    if (!confirm('¿Eliminar tu foto de perfil y volver al avatar por defecto?')) return;
+    try {
+        const res = await fetch('/cuenta/api/eliminar-foto', { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'No se pudo eliminar la foto');
+        updateProfilePhoto(fallbackAvatar);
+        alert('✅ ' + data.message);
+    } catch (err) {
+        alert('❌ ' + err.message);
+    }
+}
+
+// ===== UTILIDADES =====
+function formatearFecha(fecha) {
+    if (!fecha) return 'N/A';
+    const d = new Date(fecha);
+    return d.toLocaleString('es-CO', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatearMoneda(valor) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(valor);
+}
+
+function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+// Cargar pedidos al inicio
+cargarPedidos();
+</script>
+
+<style>
+.cuenta-container {
+    padding: 3rem 0;
+    background-color: var(--light-color);
+    min-height: calc(100vh - 300px);
+}
+
+.cuenta-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #ddd;
+}
+
+.tab-btn {
+    padding: 1rem 2rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    color: var(--primary-color);
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.cuenta-content {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--light-color);
+}
+
+.lista-items {
+    display: grid;
+    gap: 1rem;
+}
+
+.item-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.item-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.item-header h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--dark-color);
+}
+
+.item-fecha {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.item-body {
+    margin-bottom: 1rem;
+}
+
+.item-body p {
+    margin: 0.5rem 0;
+}
+
+.item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.empty-state a {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* Perfil */
+.perfil-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+}
+
+.perfil-foto-section {
+    text-align: center;
+}
+
+.foto-perfil-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--primary-color);
+}
+
+.foto-perfil-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.foto-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.7);
+    padding: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.foto-perfil-wrapper:hover .foto-overlay {
+    opacity: 1;
+}
+
+.btn-cambiar-foto {
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-eliminar-foto {
+    color: #ffdddd;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 8px;
+    padding: 0.25rem 0.5rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+}
+
+.btn-eliminar-foto:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.perfil-rol {
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-control:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.form-actions {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--light-color);
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #999;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.detalle-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.detalle-info p {
+    margin: 0.5rem 0;
+}
+
+.tabla-items {
+    width: 100%;
+    margin: 1rem 0;
+    border-collapse: collapse;
+}
+
+.tabla-items th,
+.tabla-items td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabla-items th {
+    background: var(--light-color);
+    font-weight: 600;
+}
+
+.detalle-total {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: right;
+    font-size: 1.2rem;
+    margin-top: 1rem;
+}
+
+.total-precio {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+    .cuenta-tabs {
+        overflow-x: auto;
+    }
+    
+    .tab-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .perfil-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .item-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

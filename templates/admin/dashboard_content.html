@@ -1,0 +1,549 @@
+<!-- templates/admin/dashboard_content.html -->
+<div class="dashboard-header">
+  <h1>📊 Panel Principal</h1>
+  <button class="btn-refresh" onclick="window.Dashboard.init()">
+    🔄 Actualizar
+  </button>
+</div>
+
+<!-- Estadísticas Principales -->
+<div class="stats-grid-main">
+  <div class="stat-card stat-primary">
+    <div class="stat-icon">💰</div>
+    <div class="stat-content">
+      <div class="stat-value" id="ventas-hoy">$0</div>
+      <div class="stat-label">Ventas Hoy</div>
+      <div class="stat-change" id="ventas-change">+0%</div>
+    </div>
+  </div>
+  
+  <div class="stat-card stat-success">
+    <div class="stat-icon">📦</div>
+    <div class="stat-content">
+      <div class="stat-value" id="pedidos-hoy">0</div>
+      <div class="stat-label">Pedidos Hoy</div>
+      <div class="stat-sublabel" id="pedidos-pendientes-text">0 pendientes</div>
+    </div>
+  </div>
+  
+  <div class="stat-card stat-warning">
+    <div class="stat-icon">📅</div>
+    <div class="stat-content">
+      <div class="stat-value" id="reservas-hoy">0</div>
+      <div class="stat-label">Reservas Hoy</div>
+      <div class="stat-sublabel" id="reservas-mes-text">0 este mes</div>
+    </div>
+  </div>
+  
+  <div class="stat-card stat-info">
+    <div class="stat-icon">🪑</div>
+    <div class="stat-content">
+      <div class="stat-value" id="mesas-ocupadas">0/0</div>
+      <div class="stat-label">Mesas Ocupadas</div>
+      <div class="stat-progress">
+        <div class="progress-bar" id="mesas-progress" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="stat-card stat-danger">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-content">
+      <div class="stat-value" id="inventario-bajo">0</div>
+      <div class="stat-label">Stock Bajo</div>
+      <button class="stat-action" onclick="setActiveView('inventario')">Ver →</button>
+    </div>
+  </div>
+  
+  <div class="stat-card stat-purple">
+    <div class="stat-icon">👥</div>
+    <div class="stat-content">
+      <div class="stat-value" id="total-usuarios">0</div>
+      <div class="stat-label">Usuarios</div>
+      <button class="stat-action" onclick="setActiveView('usuarios')">Ver →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gráficas -->
+<div class="charts-grid">
+  <div class="card chart-card">
+    <div class="card-header">
+      <h3>📈 Ventas de los Últimos 7 Días</h3>
+      <div class="chart-total" id="ventas-7d-total">Total: $0</div>
+    </div>
+    <div class="card-body">
+      <canvas id="ventasChart" height="200"></canvas>
+    </div>
+  </div>
+  
+  <div class="card chart-card">
+    <div class="card-header">
+      <h3>� Pedidos por Estado (30 días)</h3>
+    </div>
+    <div class="card-body">
+      <canvas id="estadosPedidosChart" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Acciones Rápidas y Top Productos -->
+<div class="dashboard-content-grid">
+  <!-- Acciones Rápidas -->
+  <div class="card actions-card">
+    <div class="card-header">
+      <h3>⚡ Acciones Rápidas</h3>
+    </div>
+    <div class="card-body">
+      <div class="actions-grid">
+        <button class="action-btn action-pedidos" onclick="setActiveView('pedidos')">
+          <span class="action-icon">📦</span>
+          <span class="action-text">Ver Pedidos</span>
+          <span class="action-badge" id="badge-pedidos-pendientes">0</span>
+        </button>
+        
+        <button class="action-btn action-reservas" onclick="setActiveView('reservas')">
+          <span class="action-icon">📅</span>
+          <span class="action-text">Ver Reservas</span>
+        </button>
+        
+        <button class="action-btn action-mesas" onclick="setActiveView('mesas')">
+          <span class="action-icon">🪑</span>
+          <span class="action-text">Gestionar Mesas</span>
+        </button>
+        
+        <button class="action-btn action-menu" onclick="setActiveView('menu')">
+          <span class="action-icon">🍽️</span>
+          <span class="action-text">Editar Menú</span>
+        </button>
+        
+        <button class="action-btn action-inventario" onclick="setActiveView('inventario')">
+          <span class="action-icon">📦</span>
+          <span class="action-text">Inventario</span>
+          <span class="action-badge action-badge-warning" id="badge-inventario">0</span>
+        </button>
+        
+        <button class="action-btn action-usuarios" onclick="setActiveView('usuarios')">
+          <span class="action-icon">👥</span>
+          <span class="action-text">Usuarios</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Top Productos -->
+  <div class="card top-productos-card">
+    <div class="card-header">
+      <h3>🏆 Top Productos (30 días)</h3>
+    </div>
+    <div class="card-body">
+      <div id="top-productos-list" class="top-productos-list">
+        <div class="loading">Cargando...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alertas Recientes -->
+<div class="card alertas-card">
+  <div class="card-header">
+    <h3>🔔 Alertas y Notificaciones</h3>
+    <button class="btn-sm btn-clear" onclick="window.Dashboard.limpiarAlertas()">Limpiar</button>
+  </div>
+  <div class="card-body">
+    <div id="alertas-list" class="alertas-list">
+      <div class="alert-item alert-info">
+        <span class="alert-icon">ℹ️</span>
+        <span class="alert-text">Sistema funcionando correctamente</span>
+        <span class="alert-time">Ahora</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1a1a1a;
+}
+
+.btn-refresh {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s;
+}
+
+.btn-refresh:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.stats-grid-main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--stat-color-1), var(--stat-color-2));
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card.stat-primary { --stat-color-1: #4caf50; --stat-color-2: #81c784; }
+.stat-card.stat-success { --stat-color-1: #2196f3; --stat-color-2: #64b5f6; }
+.stat-card.stat-warning { --stat-color-1: #ff9800; --stat-color-2: #ffb74d; }
+.stat-card.stat-info { --stat-color-1: #00bcd4; --stat-color-2: #4dd0e1; }
+.stat-card.stat-danger { --stat-color-1: #f44336; --stat-color-2: #e57373; }
+.stat-card.stat-purple { --stat-color-1: #9c27b0; --stat-color-2: #ba68c8; }
+
+.stat-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.stat-sublabel {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.stat-change {
+  font-size: 12px;
+  color: #4caf50;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.stat-progress {
+  margin-top: 8px;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #00bcd4, #4dd0e1);
+  transition: width 0.5s ease;
+}
+
+.stat-action {
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.05);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.stat-action:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.chart-card .card-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chart-card .card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.chart-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4caf50;
+}
+
+.chart-card .card-body {
+  padding: 20px;
+}
+
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.actions-card, .top-productos-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.action-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 12px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  gap: 8px;
+}
+
+.action-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.action-btn.action-pedidos { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.action-btn.action-reservas { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+.action-btn.action-mesas { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+.action-btn.action-menu { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+.action-btn.action-inventario { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+.action-btn.action-usuarios { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white; }
+
+.action-icon {
+  font-size: 32px;
+}
+
+.action-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.action-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #f44336;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  min-width: 20px;
+}
+
+.action-badge-warning {
+  background: #ff9800;
+}
+
+.top-productos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.producto-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.producto-item:hover {
+  background: #e0e0e0;
+}
+
+.producto-rank {
+  font-size: 20px;
+  font-weight: 700;
+  color: #999;
+  margin-right: 12px;
+  min-width: 30px;
+}
+
+.producto-info {
+  flex: 1;
+}
+
+.producto-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.producto-cantidad {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4caf50;
+}
+
+.alertas-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.alertas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+}
+
+.alert-item.alert-warning { border-left-color: #ff9800; }
+.alert-item.alert-danger { border-left-color: #f44336; }
+.alert-item.alert-success { border-left-color: #4caf50; }
+
+.alert-icon {
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.alert-text {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.alert-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-clear {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.btn-clear:hover {
+  background: #d0d0d0;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+}
+</style>

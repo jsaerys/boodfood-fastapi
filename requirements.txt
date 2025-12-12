@@ -1,8 +1,29 @@
-Flask==3.0.0
-Flask-SQLAlchemy==3.1.1
-Flask-Login==0.6.3
-PyMySQL==1.1.0
-cryptography==41.0.7
-Werkzeug==3.0.1
-python-dotenv==1.0.0
-bcrypt==4.1.2
+# FastAPI y servidor
+fastapi
+uvicorn[standard]
+pydantic
+pydantic[email]
+python-multipart
+
+# JWT y autenticación
+PyJWT
+
+# Flask (si necesitas integración)
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-SocketIO
+
+# Base de datos
+SQLAlchemy
+PyMySQL
+
+# Utilidades
+python-dotenv
+bcrypt
+cryptography
+
+# WebSocket y eventos (si usas SocketIO)
+python-engineio
+python-socketio
+eventlet

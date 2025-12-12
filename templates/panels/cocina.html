@@ -42,8 +42,9 @@
 <script>
 let pedidosActuales = [];
 
-// Cargar pedidos cada 5 segundos
-function cargarPedidos() {
+// Cargar pedidos iniciales y configurar WebSocket
+function inicializarPanel() {
+    // Cargar pedidos iniciales
     fetch('/cocina/api/pedidos-pendientes')
         .then(response => response.json())
         .then(pedidos => {
@@ -51,6 +52,21 @@ function cargarPedidos() {
             mostrarPedidos();
         })
         .catch(error => console.error('Error al cargar pedidos:', error));
+
+    // Configurar WebSocket
+    boodFoodSocket.on('pedido_recibido', (data) => {
+        pedidosActuales.push(data.pedido);
+        mostrarPedidos();
+        BoodFood.mostrarNotificacion('¡Nuevo pedido recibido!', 'info');
+    });
+
+    boodFoodSocket.on('estado_pedido_actualizado', (data) => {
+        const index = pedidosActuales.findIndex(p => p.id === data.pedido_id);
+        if (index !== -1) {
+            pedidosActuales[index] = data.pedido;
+        }
+        mostrarPedidos();
+    });
 }
 
 function mostrarPedidos() {
@@ -126,7 +142,12 @@ function cambiarEstado(pedidoId, nuevoEstado) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            cargarPedidos();
+            // Emitir evento de actualización vía WebSocket
+            boodFoodSocket.emit('actualizar_estado_pedido', {
+                pedido_id: pedidoId,
+                estado: nuevoEstado,
+                pedido: data.pedido
+            });
         }
     })
     .catch(error => console.error('Error:', error));
@@ -142,14 +163,18 @@ function despacharPedido(pedidoId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            cargarPedidos();
+            // Emitir evento de despacho vía WebSocket
+            boodFoodSocket.emit('actualizar_estado_pedido', {
+                pedido_id: pedidoId,
+                estado: 'despachado',
+                pedido: data.pedido
+            });
         }
     })
     .catch(error => console.error('Error:', error));
 }
 
-// Cargar pedidos al inicio y cada 5 segundos
-cargarPedidos();
-setInterval(cargarPedidos, 5000);
+// Inicializar panel al cargar la página
+document.addEventListener('DOMContentLoaded', inicializarPanel);
 </script>
 {% endblock %}

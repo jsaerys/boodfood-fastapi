@@ -11,6 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => alert.remove(), 300);
         }, 5000);
     });
+    
+    // Actualizar contador del carrito al cargar la página
+    if (window.BoodFood) {
+        const c = obtenerCarrito();
+        if (c) {
+            c.actualizar();
+            console.log('Carrito actualizado en DOMContentLoaded');
+        }
+    }
 });
 
 // Función para hacer peticiones fetch con manejo de errores
@@ -130,7 +139,7 @@ async function requiereAutenticacion(callback) {
 // Carrito de compras (para domicilios)
 class Carrito {
     constructor() {
-        this.items = JSON.parse(localStorage.getItem('carrito')) || [];
+        this.items = JSON.parse(localStorage.getItem('carrito_domicilios')) || [];
     }
     
     agregar(item) {
@@ -165,7 +174,7 @@ class Carrito {
     }
     
     guardar() {
-        localStorage.setItem('carrito', JSON.stringify(this.items));
+        localStorage.setItem('carrito_domicilios', JSON.stringify(this.items));
     }
     
     actualizar() {
@@ -175,25 +184,58 @@ class Carrito {
             contador.textContent = this.items.length;
         }
     }
+
+    obtenerItems() {
+        return this.items;
+    }
+
+    incrementar(itemId) {
+        const item = this.items.find(i => i.id === itemId);
+        if (item) {
+            item.cantidad += 1;
+            this.guardar();
+            this.actualizar();
+        }
+    }
+
+    decrementar(itemId) {
+        const item = this.items.find(i => i.id === itemId);
+        if (item) {
+            item.cantidad -= 1;
+            if (item.cantidad <= 0) {
+                this.remover(itemId);
+            } else {
+                this.guardar();
+                this.actualizar();
+            }
+        }
+    }
 }
 
-// Instancia global del carrito
-const carrito = new Carrito();
+// Instancia global del carrito - inicialización lazy
+let carrito = null;
 
-// Función para agregar al carrito desde el menú
-function agregarAlCarrito(itemId, nombre, precio) {
-    const cantidad = parseInt(prompt('¿Cuántas unidades deseas agregar?', '1'));
-    
-    if (cantidad && cantidad > 0) {
-        carrito.agregar({
-            id: itemId,
-            nombre: nombre,
-            precio: precio,
-            cantidad: cantidad
-        });
-        
-        mostrarNotificacion(`${nombre} agregado al carrito`, 'success');
+function obtenerCarrito() {
+    if (!carrito) {
+        carrito = new Carrito();
+        console.log('Carrito inicializado:', carrito);
     }
+    return carrito;
+}
+
+// Log para depuración
+
+// Función para agregar al carrito desde el menú (SOLO PARA DOMICILIOS)
+// El menú tiene su propia función agregarAlCarrito local
+function agregarAlCarritoDomicilios(itemId, nombre, precio) {
+    obtenerCarrito().agregar({
+        id: itemId,
+        nombre: nombre,
+        precio: precio,
+        cantidad: 1
+    });
+    
+    mostrarNotificacion(`${nombre} agregado al carrito`, 'success');
 }
 
 // Actualización en tiempo real (WebSocket simulado con polling)
@@ -247,8 +289,13 @@ function reproducirSonidoNotificacion() {
     oscillator.stop(audioContext.currentTime + 0.5);
 }
 
-// Exportar funciones globales
-window.BoodFood = {
+// Exportar funciones globales - Extender BoodFood si ya existe
+if (!window.BoodFood) {
+    window.BoodFood = {};
+}
+
+// Añadir propiedades al objeto BoodFood existente
+Object.assign(window.BoodFood, {
     fetchAPI,
     mostrarNotificacion,
     formatearPrecio,
@@ -256,8 +303,9 @@ window.BoodFood = {
     validarFormulario,
     verificarAutenticacion,
     requiereAutenticacion,
-    carrito,
-    agregarAlCarrito,
+    obtenerCarrito,  // Exponer función para obtener carrito
+    get carrito() { return obtenerCarrito(); },  // Getter para acceso directo
+    agregarAlCarritoDomicilios,  // Renombrada para domicilios
     ActualizadorTiempoReal,
     reproducirSonidoNotificacion
-};
+});

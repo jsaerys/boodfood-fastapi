@@ -28,6 +28,8 @@ def login():
             
             login_user(usuario, remember=remember)
             next_page = request.args.get('next')
+            if usuario.rol == 'admin':
+                return redirect(url_for('admin.panel_admin'))
             return redirect(next_page or url_for('main.index'))
         else:
             flash('Email o contraseña incorrectos', 'error')

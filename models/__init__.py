@@ -26,7 +26,7 @@ class Usuario(UserMixin, db.Model):
     fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
     ultima_sesion = db.Column(db.DateTime)
     estado = db.Column(db.Enum('activo', 'inactivo', 'suspendido'))
-    rol = db.Column(db.Enum('usuario', 'administrador', 'restaurante', 'cliente', 'mesero', 'cocinero', 'cajero', 'admin'), default='cliente')
+    rol = db.Column(db.Enum('cliente', 'mesero', 'cocinero', 'cajero', 'admin'), default='cliente')
     verificado = db.Column(db.Boolean)
     genero = db.Column(db.Enum('masculino', 'femenino', 'otro', 'no_especifica'))
     fecha_nacimiento = db.Column(db.Date)
@@ -72,13 +72,26 @@ class Mesa(db.Model):
     tipo = db.Column(db.Enum('interior', 'terraza', 'vip'), default='interior')
     
     def to_dict(self):
+        # Determinar si la mesa está ocupada por pedidos activos
+        ocupada = False
+        try:
+            from models import Pedido
+            pedido_activo = Pedido.query.filter(
+                Pedido.mesa_id == self.id,
+                Pedido.estado.in_(['pendiente', 'preparando', 'enviado'])
+            ).first()
+            ocupada = pedido_activo is not None
+        except Exception:
+            pass
+        
         return {
             'id': self.id,
             'numero': self.numero,
             'capacidad': self.capacidad,
             'ubicacion': self.ubicacion,
             'disponible': self.disponible,
-            'tipo': self.tipo
+            'tipo': self.tipo,
+            'ocupada': ocupada
         }
 
 
@@ -235,7 +248,9 @@ class Reserva(db.Model):
             'codigo_reserva': self.codigo_reserva,
             'estado': self.estado,
             'mesa_asignada': self.mesa_asignada,
-            'zona_mesa': self.zona_mesa
+            'zona_mesa': self.zona_mesa,
+            'duracion_estimada': self.duracion_estimada,
+            'total_reserva': float(self.total_reserva) if self.total_reserva is not None else None
         }
 
 
@@ -266,6 +281,9 @@ class Pedido(db.Model):
     tiempo_estimado_entrega = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime)
+    mesa_id = db.Column(db.Integer, db.ForeignKey('mesas.id'))
+    mesa = db.relationship('Mesa', backref='pedidos')
+    tipo_servicio = db.Column(db.Enum('mesa', 'domicilio', 'piscina', 'billar', 'eventos'), default='mesa')
     
     # Relaciones
     items = db.relationship('PedidoItem', backref='pedido', lazy=True, cascade='all, delete-orphan')
@@ -292,6 +310,9 @@ class Pedido(db.Model):
             'telefono_contacto': self.telefono_contacto,
             'nombre_receptor': self.nombre_receptor,
             'fecha_pedido': self.fecha_pedido.isoformat() if self.fecha_pedido else None,
+            'mesa_id': self.mesa_id,
+            'tipo_servicio': self.tipo_servicio,
+            'instrucciones_entrega': self.instrucciones_entrega,
             'items': [item.to_dict() for item in self.items]
         }
 
@@ -301,7 +322,7 @@ class PedidoItem(db.Model):
     __tablename__ = 'pedido_items'
     
     pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False, primary_key=True)
-    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), primary_key=True)  # Ahora también es parte de la clave primaria
     nombre_item = db.Column(db.String(255), nullable=False)
     descripcion_item = db.Column(db.Text)
     cantidad = db.Column(db.Integer, nullable=False, default=1)
@@ -328,39 +349,6 @@ class PedidoItem(db.Model):
 # por lo que han sido removidas de este archivo. Si necesitas estas funcionalidades,
 # deberás crear las tablas correspondientes en la base de datos.
 
-
-
-class Factura(db.Model):
-    """Modelo de factura"""
-    __tablename__ = 'facturas'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    pedido_id = db.Column(db.Integer, db.ForeignKey('pedidos.id'), nullable=False)
-    mesa_id = db.Column(db.Integer, db.ForeignKey('mesas.id'))
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
-    total = db.Column(db.Numeric(10, 2), nullable=False)
-    estado = db.Column(db.Enum('pendiente', 'pagada', 'cancelada'), default='pendiente')
-    metodo_pago = db.Column(db.String(50))
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_pago = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relaciones
-    pedido_rel = db.relationship('Pedido', backref='factura', uselist=False)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'pedido_id': self.pedido_id,
-            'mesa_id': self.mesa_id,
-            'usuario_id': self.usuario_id,
-            'total': float(self.total),
-            'estado': self.estado,
-            'metodo_pago': self.metodo_pago,
-            'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None,
-            'fecha_pago': self.fecha_pago.isoformat() if self.fecha_pago else None
-        }
 
 
 class Inventario(db.Model):
@@ -416,4 +404,26 @@ class InventarioMovimiento(db.Model):
             'usuario_id': self.usuario_id,
             'notas': self.notas,
             'fecha_movimiento': self.fecha_movimiento.isoformat() if self.fecha_movimiento else None
+        }
+
+class Receta(db.Model):
+    """Define los ingredientes necesarios para cada plato del menú"""
+    __tablename__ = 'recetas'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
+    inventario_id = db.Column(db.Integer, db.ForeignKey('inventario.id'), nullable=False)
+    cantidad_usada = db.Column(db.Numeric(10, 2), nullable=False)  # Cantidad por unidad de plato
+    
+    # Relaciones
+    menu_item = db.relationship('MenuItem', backref=db.backref('recetas', lazy=True, cascade='all, delete-orphan'))
+    inventario = db.relationship('Inventario', backref=db.backref('usos_en_recetas', lazy=True))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'menu_item_id': self.menu_item_id,
+            'inventario_id': self.inventario_id,
+            'cantidad_usada': float(self.cantidad_usada),
+            'ingrediente': self.inventario.to_dict() if self.inventario else None
         }

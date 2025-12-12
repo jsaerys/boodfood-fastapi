@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BoodFood API - Pruebas</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { color: #fff; margin-bottom: 10px; text-align: center; }
+    .subtitle { color: #ddd; text-align: center; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .card h3 { color: #667eea; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+    label { display: block; margin: 12px 0 4px; color: #333; font-weight: 500; }
+    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+    button { padding: 10px 16px; background: #667eea; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 12px; transition: background 0.3s; }
+    button:hover { background: #764ba2; }
+    .info-box { background: #e8f4f8; border-left: 4px solid #667eea; padding: 12px; margin-bottom: 15px; border-radius: 4px; font-size: 13px; }
+    .success { background: #d4edda; border-left-color: #28a745; color: #155724; }
+    .error { background: #f8d7da; border-left-color: #dc3545; color: #721c24; }
+    pre { background: #f5f5f5; border: 1px solid #ddd; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 12px; max-height: 200px; color: #333; }
+    .token-display { background: #e8f4f8; padding: 10px; border-radius: 4px; font-size: 12px; word-break: break-all; }
+    .status { padding: 8px; margin: 10px 0; border-radius: 4px; font-weight: 600; text-align: center; }
+    .status.ok { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍽️ BoodFood API - Panel de Pruebas</h1>
+    <p class="subtitle">Prueba todos los endpoints del API desde aquí. Comienza con Registro y Login.</p>
+    <div id="status"></div>
+    <!-- Autenticación -->
+    <div class="card">
+      <h3>👤 Registro (POST /auth/register)</h3>
+      <div class="info-box">Crea una nueva cuenta de usuario</div>
+      <label>Email</label>
+      <input id="reg_email" type="email" placeholder="usuario@example.com" />
+      <label>Nombre</label>
+      <input id="reg_nombre" placeholder="Juan" />
+      <label>Apellido</label>
+      <input id="reg_apellido" placeholder="Pérez" />
+      <label>Teléfono</label>
+      <input id="reg_telefono" placeholder="3105551234" />
+      <label>Dirección</label>
+      <input id="reg_direccion" placeholder="Calle 123 #456" />
+      <label>Contraseña</label>
+      <input id="reg_password" type="password" placeholder="Mínimo 8 caracteres" />
+      <button onclick="register()">📝 Registrar</button>
+      <div id="reg_res"></div>
+    </div>
+
+    <!-- Login -->
+    <div class="card">
+      <h3>🔐 Login (POST /auth/login)</h3>
+      <div class="info-box">Inicia sesión para obtener un token JWT</div>
+      <label>Email</label>
+      <input id="login_email" type="email" placeholder="usuario@example.com" />
+      <label>Contraseña</label>
+      <input id="login_password" type="password" placeholder="Tu contraseña" />
+      <button onclick="login()">🔑 Ingresar</button>
+      <div id="login_res"></div>
+      <div id="token_display"></div>
+    </div>
+
+    <!-- Mesas -->
+    <div class="card">
+      <h3>🪑 Listar Mesas (GET /mesas)</h3>
+      <div class="info-box">Obtiene todas las mesas disponibles</div>
+      <button onclick="getMesas()">📋 Listar Mesas</button>
+      <div id="mesas_res"></div>
+    </div>
+
+    <!-- Crear Pedido -->
+    <div class="card">
+      <h3>🍕 Crear Pedido (POST /pedidos)</h3>
+      <div class="info-box">Requiere estar autenticado. Crea un nuevo pedido.</div>
+      <label>Tipo de Servicio</label>
+      <select id="pedido_tipo">
+        <option value="mesa">Mesa</option>
+        <option value="domicilio">Domicilio</option>
+      </select>
+      <label>Mesa ID (si es servicio en mesa)</label>
+      <input id="pedido_mesa" type="number" placeholder="1" />
+      <label>Método de Pago</label>
+      <select id="pedido_pago">
+        <option value="efectivo">Efectivo</option>
+        <option value="tarjeta">Tarjeta</option>
+        <option value="transferencia">Transferencia</option>
+      </select>
+      <label>Items (JSON array: [{"menu_item_id": 1, "cantidad": 1, "precio_unitario": 25.0}])</label>
+      <textarea id="pedido_items" rows="4">[{"menu_item_id":1,"cantidad":2,"precio_unitario":25.0}]</textarea>
+      <button onclick="createPedido()">✅ Crear Pedido</button>
+      <div id="pedido_res"></div>
+    </div>
+
+    <!-- Crear Reserva -->
+    <div class="card">
+      <h3>📅 Crear Reserva (POST /reservas)</h3>
+      <div class="info-box">Requiere estar autenticado. Reserva una mesa.</div>
+      <label>Mesa ID</label>
+      <input id="reserva_mesa" type="number" placeholder="1" />
+      <label>Fecha de Reserva (YYYY-MM-DD HH:MM)</label>
+      <input id="reserva_fecha" type="datetime-local" />
+      <label>Número de Personas</label>
+      <input id="reserva_personas" type="number" min="1" max="20" placeholder="4" />
+      <label>Notas</label>
+      <textarea id="reserva_notas" rows="3" placeholder="Preferencias especiales..."></textarea>
+      <button onclick="createReserva()">🎫 Crear Reserva</button>
+      <div id="reserva_res"></div>
+    </div>
+
+    <!-- Ver Datos de Usuario -->
+    <div class="card">
+      <h3>👨‍💼 Mi Perfil (GET /usuarios/me)</h3>
+      <div class="info-box">Obtiene los datos del usuario autenticado</div>
+      <button onclick="getUserProfile()">📊 Ver Perfil</button>
+      <div id="profile_res"></div>
+    </div>
+
+    <!-- Listar Menú -->
+    <div class="card">
+      <h3>🍽️ Menú (GET /menu)</h3>
+      <div class="info-box">Obtiene todos los ítems del menú disponibles</div>
+      <button onclick="getMenu()">📖 Ver Menú</button>
+      <div id="menu_res"></div>
+    </div>
+    </div>
+
+  <script>
+    const API_BASE = 'http://localhost:8000/api/v1';
+    let currentToken = '';
+
+    function showStatus(msg, type = 'info') {
+      const el = document.getElementById('status');
+      el.innerHTML = `<div class="status ${type}">${msg}</div>`;
+      setTimeout(() => { el.innerHTML = ''; }, 5000);
+    }
+
+    function displayResult(elementId, data, title = '') {
+      const el = document.getElementById(elementId);
+      if (title) el.innerHTML = `<strong>${title}</strong><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      else el.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
+
+    async function register() {
+      const email = document.getElementById('reg_email').value.trim();
+      const nombre = document.getElementById('reg_nombre').value.trim();
+      const apellido = document.getElementById('reg_apellido').value.trim();
+      const telefono = document.getElementById('reg_telefono').value.trim();
+      const direccion = document.getElementById('reg_direccion').value.trim();
+      const password = document.getElementById('reg_password').value;
+
+      if (!email || !nombre || !apellido || !password) {
+        showStatus('⚠️ Completa todos los campos requeridos', 'error');
+        return;
+      }
+
+      const body = { email, nombre, apellido, telefono, direccion, password };
+      try {
+        const r = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (r.ok) {
+          showStatus('✅ Registro exitoso', 'ok');
+          displayResult('reg_res', j, '✅ Respuesta:');
+        } else {
+          showStatus(`❌ Error: ${j.detail || 'Error al registrar'}`, 'error');
+          displayResult('reg_res', j, '❌ Error:');
+        }
+      } catch (e) {
+        showStatus(`❌ Error de conexión: ${e.message}`, 'error');
+        displayResult('reg_res', { error: e.message }, '❌ Error:');
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById('login_email').value.trim();
+      const password = document.getElementById('login_password').value;
+
+      if (!email || !password) {
+        showStatus('⚠️ Ingresa email y contraseña', 'error');
+        return;
+      }
+
+      const body = { email, password };
+      try {
+        const r = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (r.ok && j.access_token) {
+          currentToken = j.access_token;
+          showStatus('✅ Login exitoso', 'ok');
+          document.getElementById('token_display').innerHTML = `
+            <div class="info-box success">
+              <strong>🔐 Token guardado:</strong><br/>
+              <div class="token-display">${currentToken}</div>
+              <strong>Usuario:</strong> ${j.user?.nombre || ''} ${j.user?.apellido || ''}
+            </div>
+          `;
+          displayResult('login_res', j, '✅ Respuesta:');
+        } else {
+          showStatus(`❌ Error: ${j.detail || 'Credenciales inválidas'}`, 'error');
+          displayResult('login_res', j, '❌ Error:');
+        }
+      } catch (e) {
+        showStatus(`❌ Error de conexión: ${e.message}`, 'error');
+        displayResult('login_res', { error: e.message }, '❌ Error:');
+      }
+    }
+
+    async function getMesas() {
+      try {
+        const r = await fetch(`${API_BASE}/mesas`);
+        const j = await r.json();
+        if (r.ok) {
+          showStatus(`✅ Se obtuvieron ${j.length || 0} mesas`, 'ok');
+          displayResult('mesas_res', j, '✅ Mesas:');
+        } else {
+          showStatus('❌ Error al obtener mesas', 'error');
+          displayResult('mesas_res', j, '❌ Error:');
+        }
+      } catch (e) {
+        showStatus(`❌ Error de conexión: ${e.message}`, 'error');
+        displayResult('mesas_res', { error: e.message }, '❌ Error:');
+      }
+    }
+
+    async function createPedido() {
+      if (!currentToken) {
+        showStatus('⚠️ Debes estar autenticado primero', 'error');
+        return;
+      }
+
+      const tipo = document.getElementById('pedido_tipo').value;
+      const mesa = document.getElementById('pedido_mesa').value;
+      const pago = document.getElementById('pedido_pago').value;
+      const itemsText = document.getElementById('pedido_items').value.trim();
+
+      let items = [];
+      try {
+        items = JSON.parse(itemsText);
+        if (!Array.isArray(items)) throw new Error('Items debe ser un array');
+      } catch (e) {
+        showStatus(`❌ JSON de items inválido: ${e.message}`, 'error');
+        return;
+      }
+
+      const body = {
+        tipo_servicio: tipo,
+        mesa_id: mesa ? parseInt(mesa) : null,
+        items,
+        metodo_pago: pago
+      };
+
+      try {
+        const r = await fetch(`${API_BASE}/pedidos`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (r.ok) {
+          showStatus('✅ Pedido creado exitosamente', 'ok');
+          displayResult('pedido_res', j, '✅ Pedido:');
+        } else {
+          showStatus(`❌ Error: ${j.detail || 'Error al crear pedido'}`, 'error');
+          displayResult('pedido_res', j, '❌ Error:');
+        }
+      } catch (e) {
+        showStatus(`❌ Error de conexión: ${e.message}`, 'error');
+        displayResult('pedido_res', { error: e.message }, '❌ Error:');
+      }
+    }
+
+    async function createReserva() {
+      if (!currentToken) {
+        showStatus('⚠️ Debes estar autenticado primero', 'error');
+        return;
+      }
+
+      const mesa = document.getElementById('reserva_mesa').value;
+      const fecha = document.getElementById('reserva_fecha').value;
+      const personas = document.getElementById('reserva_personas').value;
+      const notas = document.getElementById('reserva_notas').value;
+
+      if (!mesa || !fecha || !personas) {
+        showStatus('⚠️ Completa los campos requeridos', 'error');
+        return;
+      }
+
+      const body = {
+        mesa_id: parseInt(mesa),
+        fecha_reserva: fecha.replace('T', ' '),
+        numero_personas: parseInt(personas),
+        notas
+      };
+
+      try {
+        const r = await fetch(`${API_BASE}/reservas`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (r.ok) {
+          showStatus('✅ Reserva creada exitosamente', 'ok');
+          displayResult('reserva_res', j, '✅ Reserva:');
+        } else {
+          showStatus(`❌ Error: ${j.detail || 'Error al crear reserva'}`, 'error');
+          displayResult('reserva_res', j, '❌ Error:');
+        }
+      } catch (e) {
+        showStatus(`❌ Error de conexión: ${e.message}`, 'error');
+        displayResult('reserva_res', { error: e.message }, '❌ Error:');
+      }
+    }
+
+    async function getUserProfile() {
+      if (!currentToken) {
+        showStatus('⚠️ Debes estar autenticado primero', 'error');
+        return;
+      }
+
+      try {
+        const r = await fetch(`${API_BASE}/usuarios/me`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const j = await r.json();
+        if (r.ok) {
+          showStatus('✅ Datos del perfil obtenidos', 'ok');
+          displayResult('profile_res', j, '✅ Perfil:');
+        } else {
+          showStatus(`❌ Error: ${j.detail || 'No autorizado'}`, 'error');
+          displayResult('profile_res', j, '❌ Error:');
+        }
+      } catch (e) {
+        showStatus(`❌ Error de conexión: ${e.message}`, 'error');
+        displayResult('profile_res', { error: e.message }, '❌ Error:');
+      }
+    }
+
+    async function getMenu() {
+      try {
+        const r = await fetch(`${API_BASE}/menu`);
+        const j = await r.json();
+        if (r.ok) {
+          showStatus(`✅ Se obtuvieron ${j.length || 0} items del menú`, 'ok');
+          displayResult('menu_res', j, '✅ Menú:');
+        } else {
+          showStatus('❌ Error al obtener menú', 'error');
+          displayResult('menu_res', j, '❌ Error:');
+        }
+      } catch (e) {
+        showStatus(`❌ Error de conexión: ${e.message}`, 'error');
+        displayResult('menu_res', { error: e.message }, '❌ Error:');
+      }
+    }
+  </script>
+</body>
+</html>
+
+  <div class="card">
+    <h3>Registro (POST /api/v1/auth/register)</h3>
+    <label>Email</label><input id="reg_email" value="test+ui@example.com" />
+    <label>Nombre</label><input id="reg_nombre" value="TestUI" />
+    <label>Apellido</label><input id="reg_apellido" value="User" />
+    <label>Password</label><input id="reg_password" value="Pass123!" type="password" />
+    <button onclick="register()">Registrar</button>
+    <pre id="reg_res"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Login (POST /api/v1/auth/login)</h3>
+    <label>Email</label><input id="login_email" value="test+ui@example.com" />
+    <label>Password</label><input id="login_password" value="Pass123!" type="password" />
+    <button onclick="login()">Login</button>
+    <pre id="login_res"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Listar Mesas (GET /api/v1/mesas)</h3>
+    <button onclick="getMesas()">Listar mesas</button>
+    <pre id="mesas_res"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Crear Pedido (POST /api/v1/pedidos)</h3>
+    <label>Tipo servicio</label>
+    <select id="pedido_tipo"><option value="mesa">mesa</option><option value="domicilio">domicilio</option></select>
+    <label>Mesa ID (si aplica)</label><input id="pedido_mesa" />
+    <label>Items JSON (array de items con menu_item_id, cantidad, precio_unitario)</label>
+    <textarea id="pedido_items">[{"menu_item_id":1,"cantidad":1,"precio_unitario":10.0}]</textarea>
+    <button onclick="createPedido()">Crear pedido</button>
+    <pre id="pedido_res"></pre>
+  </div>
+
+  <script>
+    const API = location.protocol + '//' + location.hostname + ':8000/api/v1';
+    let token = '';
+
+    async function register(){
+      const body = {
+        nombre: document.getElementById('reg_nombre').value,
+        apellido: document.getElementById('reg_apellido').value,
+        email: document.getElementById('reg_email').value,
+        password: document.getElementById('reg_password').value,
+        telefono: '', direccion: ''
+      };
+      const r = await fetch(API + '/auth/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const j = await r.json().catch(()=>({status:r.status}));
+      document.getElementById('reg_res').textContent = JSON.stringify(j, null, 2);
+    }
+
+    async function login(){
+      const body = { email: document.getElementById('login_email').value, password: document.getElementById('login_password').value };
+      const r = await fetch(API + '/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const j = await r.json().catch(()=>({status:r.status}));
+      if(j.access_token) token = j.access_token;
+      document.getElementById('login_res').textContent = JSON.stringify(j, null, 2);
+    }
+
+    async function getMesas(){
+      const r = await fetch(API + '/mesas');
+      const j = await r.json().catch(()=>({status:r.status}));
+      document.getElementById('mesas_res').textContent = JSON.stringify(j, null, 2);
+    }
+
+    async function createPedido(){
+      const tipo = document.getElementById('pedido_tipo').value;
+      const mesa = document.getElementById('pedido_mesa').value || null;
+      let items = [];
+      try{ items = JSON.parse(document.getElementById('pedido_items').value); } catch(e){ document.getElementById('pedido_res').textContent = 'Items JSON inválido'; return; }
+      const body = { tipo_servicio: tipo, mesa_id: mesa ? Number(mesa) : null, items: items, metodo_pago: 'efectivo' };
+      const headers = {'Content-Type':'application/json'};
+      if(token) headers['Authorization'] = 'Bearer ' + token;
+      const r = await fetch(API + '/pedidos', {method:'POST', headers, body:JSON.stringify(body)});
+      const j = await r.json().catch(()=>({status:r.status}));
+      document.getElementById('pedido_res').textContent = JSON.stringify(j, null, 2);
+    }
+
+  </script>
+</body>
+</html>

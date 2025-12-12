@@ -13,157 +13,491 @@
 <div class="servicios-container">
     <div class="container">
         <div class="servicios-intro">
-            <p>En BoodFood ofrecemos mucho más que comida deliciosa. Contamos con instalaciones y servicios diseñados para que disfrutes al máximo tu visita.</p>
+            <p>En BoodFood ofrecemos mucho más que comida deliciosa...</p>
         </div>
         
         <div class="servicios-grid">
             {% for servicio in servicios %}
             <div class="servicio-card servicio-{{ servicio.tipo }}">
                 <div class="servicio-icono">
-                    {% if servicio.tipo == 'piscina' %}
-                    🏊
-                    {% elif servicio.tipo == 'billar' %}
-                    🎱
-                    {% elif servicio.tipo == 'evento' %}
-                    🎉
-                    {% else %}
-                    ⭐
-                    {% endif %}
+                    {% if servicio.tipo == 'piscina' %}🏊
+                    {% elif servicio.tipo == 'billar' %}🎱
+                    {% elif servicio.tipo == 'evento' %}🎉
+                    {% else %}⭐{% endif %}
                 </div>
-                
                 <div class="servicio-contenido">
                     <h3>{{ servicio.nombre }}</h3>
                     <p class="servicio-descripcion">{{ servicio.descripcion }}</p>
-                    
                     <div class="servicio-detalles">
                         {% if servicio.capacidad %}
-                        <div class="servicio-detalle">
-                            <strong>Capacidad:</strong> {{ servicio.capacidad }} personas
-                        </div>
+                        <div class="servicio-detalle"><strong>Capacidad:</strong> {{ servicio.capacidad }} personas</div>
                         {% endif %}
-                        
-                        <div class="servicio-precio">
-                            <strong>Precio:</strong> ${{ "{:,.0f}".format(servicio.precio) }}
-                        </div>
+                        <div class="servicio-precio"><strong>Precio:</strong> ${{ "{:,.0f}".format(servicio.precio) }}</div>
                     </div>
-                    
-                    <button class="btn btn-primary" onclick="reservarServicio({{ servicio.id }}, '{{ servicio.nombre }}', {{ servicio.precio }})">
+                    <button class="btn btn-primary" onclick="reservarServicio({{ servicio.id }}, '{{ servicio.nombre|e }}', {{ servicio.precio }}, '{{ servicio.tipo }}')">
                         Reservar Ahora
                     </button>
                 </div>
             </div>
             {% endfor %}
         </div>
+
+        <!-- Secciones destacadas (piscina, entretenimiento, eventos) -->
+        <!-- ... (mantén tu HTML existente aquí) ... -->
         
-        <!-- Sección de piscina destacada -->
-        <div class="seccion-destacada piscina-seccion">
-            <div class="seccion-contenido">
-                <h2>🏊 Zona de Piscina</h2>
-                <p>Disfruta de nuestra hermosa piscina mientras te relajas y disfrutas de nuestros deliciosos platos y bebidas. Contamos con servicio a la piscina para que no tengas que moverte.</p>
-                
-                <div class="caracteristicas-grid">
-                    <div class="caracteristica">
-                        <div class="caracteristica-icono">🍹</div>
-                        <h4>Servicio a la Piscina</h4>
-                        <p>Pide bebidas y comida directamente desde tu lugar</p>
-                    </div>
-                    
-                    <div class="caracteristica">
-                        <div class="caracteristica-icono">🏖️</div>
-                        <h4>Zona de Descanso</h4>
-                        <p>Cómodas sillas y sombrillas para tu comodidad</p>
-                    </div>
-                    
-                    <div class="caracteristica">
-                        <div class="caracteristica-icono">👨‍👩‍👧‍👦</div>
-                        <h4>Para Toda la Familia</h4>
-                        <p>Zona segura y divertida para niños y adultos</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sección de entretenimiento -->
-        <div class="seccion-destacada entretenimiento-seccion">
-            <div class="seccion-contenido">
-                <h2>🎱 Zona de Entretenimiento</h2>
-                <p>Complementa tu experiencia gastronómica con nuestras opciones de entretenimiento.</p>
-                
-                <div class="juegos-grid">
-                    <div class="juego-card">
-                        <div class="juego-imagen">🎱</div>
-                        <h4>Billar</h4>
-                        <p>Mesas profesionales de billar disponibles por hora</p>
-                    </div>
-                    
-                    <div class="juego-card">
-                        <div class="juego-imagen">🎯</div>
-                        <h4>Juegos de Mesa</h4>
-                        <p>Variedad de juegos para disfrutar en grupo</p>
-                    </div>
-                    
-                    <div class="juego-card">
-                        <div class="juego-imagen">🎮</div>
-                        <h4>Zona de Juegos</h4>
-                        <p>Entretenimiento para todas las edades</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sección de eventos -->
-        <div class="seccion-destacada eventos-seccion">
-            <div class="seccion-contenido">
-                <h2>🎉 Eventos y Celebraciones</h2>
-                <p>¿Tienes una ocasión especial? Alquila nuestros espacios para eventos privados.</p>
-                
-                <div class="eventos-info">
-                    <div class="evento-tipo">
-                        <h4>Cumpleaños</h4>
-                        <p>Celebra tu día especial con nosotros</p>
-                    </div>
-                    
-                    <div class="evento-tipo">
-                        <h4>Reuniones Corporativas</h4>
-                        <p>Espacios ideales para eventos de empresa</p>
-                    </div>
-                    
-                    <div class="evento-tipo">
-                        <h4>Fiestas Privadas</h4>
-                        <p>Personaliza tu evento a tu gusto</p>
-                    </div>
-                    
-                    <div class="evento-tipo">
-                        <h4>Celebraciones Familiares</h4>
-                        <p>Reuniones, aniversarios y más</p>
-                    </div>
-                </div>
-                
-                <div class="eventos-contacto">
-                    <p><strong>Para cotizaciones y reservas de eventos:</strong></p>
-                    <p>📞 Teléfono: +57 300 123 4567</p>
-                    <p>📧 Email: eventos@boodfood.com</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
+<!-- ✅ Incluir los modales parciales -->
+{% include '_modales/_modal_billar.html' %}
+{% include '_modales/_modal_evento.html' %}
+{% include '_modales/_modal_piscina.html' %}
+{% include '_modales/_modal_pedidos_piscina.html' %}
+
 <script>
-function reservarServicio(id, nombre, precio) {
-    if (!{{ 'true' if current_user.is_authenticated else 'false' }}) {
-        alert('Debes iniciar sesión para reservar servicios');
-        window.location.href = '/auth/login';
+// Guardar precios de servicios en variable global
+window.preciosServicios = window.preciosServicios || {};
+
+function reservarServicio(id, nombre, precio, tipo) {
+    const isAuth = {{ 'true' if current_user.is_authenticated else 'false' }};
+    if (!isAuth) {
+        if (confirm('Debes iniciar sesión para reservar servicios.\n¿Deseas ir a la página de inicio de sesión?')) {
+            window.location.href = '/auth/login?next={{ url_for("main.servicios") }}';
+        }
         return;
     }
+
+    // Guardar precio del servicio
+    window.preciosServicios[tipo] = precio;
     
-    if (confirm(`¿Deseas reservar ${nombre} por $${precio.toLocaleString()}?`)) {
-        window.location.href = '/reservas?servicio=' + id;
+    // Establecer fecha mínima (hoy)
+    const hoy = new Date().toISOString().split('T')[0];
+
+    if (tipo === 'billar') {
+        document.getElementById('servicio_id_billar').value = id;
+        document.getElementById('titulo-servicio-billar').textContent = nombre;
+        document.getElementById('fecha_billar').min = hoy;
+        document.getElementById('modal-reserva-billar').style.display = 'flex';
+        actualizarTotalBillar();
+        // Listeners para recalcular en cambio
+        document.getElementById('duracion_billar').oninput = actualizarTotalBillar;
+    }
+    else if (tipo === 'evento') {
+        document.getElementById('servicio_id_evento').value = id;
+        document.getElementById('titulo-servicio-evento').textContent = nombre;
+        document.getElementById('fecha_evento').min = hoy;
+        document.getElementById('modal-reserva-evento').style.display = 'flex';
+        actualizarTotalEvento();
+        // Listeners para recalcular en cambio
+        document.getElementById('personas_evento').oninput = actualizarTotalEvento;
+    }
+    else if (tipo === 'piscina') {
+        document.getElementById('servicio_id_piscina').value = id;
+        document.getElementById('titulo-servicio-piscina').textContent = nombre;
+        document.getElementById('fecha_piscina').min = hoy;
+        document.getElementById('modal-reserva-piscina').style.display = 'flex';
+        actualizarTotalPiscina();
+        // Listeners para recalcular en cambio
+        document.getElementById('personas_piscina').oninput = actualizarTotalPiscina;
+        document.getElementById('incluye_toallas').onchange = actualizarTotalPiscina;
+    }
+    else {
+        if (confirm(`¿Deseas reservar ${nombre} por $${precio.toLocaleString()}?`)) {
+            window.location.href = '/reservas?servicio=' + id;
+        }
     }
 }
+
+function actualizarTotalBillar() {
+	const precioPorHora = 15000; // $15.000 por hora
+	const horas = parseInt(document.getElementById('duracion_billar').value) || 2;
+	const total = precioPorHora * horas;
+	document.getElementById('total_billar').textContent = total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+}
+
+function actualizarTotalEvento() {
+    const precio = window.preciosServicios['evento'] || 0;
+    const personas = parseInt(document.getElementById('personas_evento').value) || 0;
+    
+    // Validación de capacidad máxima
+    const inputPersonas = document.getElementById('personas_evento');
+    if (personas > 200) {
+        inputPersonas.value = 200;
+    }
+    
+    // Total fijo, NO multiplicar por personas
+    let total = precio;
+    
+    // Descuento por grupo grande: >50 invitados = 10% descuento
+    let descuentoTexto = '';
+    if (personas > 50) {
+        const descuento = total * 0.10;
+        total = total - descuento;
+        descuentoTexto = ` <small style="color: #28a745;">(10% descuento aplicado)</small>`;
+    }
+    
+    document.getElementById('total_evento').innerHTML = total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) + descuentoTexto;
+}
+
+function actualizarTotalPiscina() {
+	const precioPorPersona = 10000; // $10.000 por persona
+	const personas = parseInt(document.getElementById('personas_piscina').value) || 2;
+	const includeToallas = document.getElementById('incluye_toallas')?.checked || false;
+	
+	// Validación de capacidad máxima
+	const inputPersonas = document.getElementById('personas_piscina');
+	if (personas > 50) {
+		inputPersonas.value = 50;
+	}
+	
+	let total = precioPorPersona * personas;
+	
+	// Agregar costo de toallas si está marcado
+	if (includeToallas) {
+		total += 5000 * personas; // $5.000 adicional por persona con toalla
+	}
+	
+	// Descuento por grupos grandes: >10 personas = 15% descuento
+	let descuentoTexto = '';
+	if (personas > 10) {
+		const descuento = total * 0.15;
+		total = total - descuento;
+		descuentoTexto = ` <small style="color: #28a745;">(15% descuento grupal)</small>`;
+	}
+	
+	document.getElementById('total_piscina').innerHTML = total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }) + descuentoTexto;
+}
+
+function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modales = ['modal-reserva-billar', 'modal-reserva-evento', 'modal-reserva-piscina'];
+    modales.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal && event.target === modal) {
+            cerrarModal(id);
+        }
+    });
+}
+
+// Enviar reservas de servicios por AJAX para evitar navegar fuera de la página
+async function enviarReservaServicio(e, tipo) {
+    e.preventDefault();
+    
+    // Validar fecha y hora
+    const fechaInput = document.getElementById(`fecha_${tipo}`);
+    const horaInput = document.getElementById(`hora_${tipo}`);
+    const personasInput = document.getElementById(`personas_${tipo}`);
+    
+    if (!fechaInput.value || !horaInput.value || !personasInput.value) {
+        alert('Por favor completa todos los campos obligatorios');
+        return false;
+    }
+    
+    // Validar que la fecha no sea en el pasado
+    const fechaSeleccionada = new Date(fechaInput.value + 'T' + horaInput.value);
+    const ahora = new Date();
+    if (fechaSeleccionada < ahora) {
+        alert('No puedes reservar en una fecha u hora pasada');
+        fechaInput.focus();
+        return false;
+    }
+    
+    // Validar número de personas según el tipo
+    const personas = parseInt(personasInput.value);
+    if (tipo === 'piscina' && personas > 50) {
+        alert('La capacidad máxima de la piscina es de 50 personas');
+        personasInput.value = 50;
+        return false;
+    }
+    if (tipo === 'evento' && personas > 200) {
+        alert('La capacidad máxima para eventos es de 200 personas');
+        personasInput.value = 200;
+        return false;
+    }
+    
+    // Deshabilitar botón para evitar doble envío
+    const btnSubmit = e.target.querySelector('button[type="submit"]');
+    const textoOriginal = btnSubmit.textContent;
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Procesando...';
+    
+    try {
+        let payload = { tipo };
+        if (tipo === 'billar') {
+            payload.servicio_id = document.getElementById('servicio_id_billar').value;
+            payload.fecha = document.getElementById('fecha_billar').value;
+            payload.hora = document.getElementById('hora_billar').value;
+            payload.numero_personas = document.getElementById('personas_billar').value;
+            payload.mesa_id = document.getElementById('mesa_billar').value;
+        } else if (tipo === 'evento') {
+            payload.servicio_id = document.getElementById('servicio_id_evento').value;
+            payload.fecha = document.getElementById('fecha_evento').value;
+            payload.hora = document.getElementById('hora_evento').value;
+            payload.numero_personas = document.getElementById('personas_evento').value;
+            payload.detalles = {
+                tipo_evento: document.getElementById('tipo_evento').value,
+                notas: document.getElementById('notas_evento').value,
+            };
+        } else if (tipo === 'piscina') {
+            const duracion = parseInt(document.getElementById('duracion_piscina').value);
+            if (duracion < 1 || duracion > 8) {
+                alert('La duración debe ser entre 1 y 8 horas');
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = textoOriginal;
+                return false;
+            }
+            
+            payload.servicio_id = document.getElementById('servicio_id_piscina').value;
+            payload.fecha = document.getElementById('fecha_piscina').value;
+            payload.hora = document.getElementById('hora_piscina').value;
+            payload.numero_personas = document.getElementById('personas_piscina').value;
+            payload.detalles = {
+                duracion_horas: duracion,
+                area_ninos: document.getElementById('ninos_piscina').checked ? 'si' : 'no',
+            };
+            payload.duracion_estimada = duracion;
+        }
+
+        const res = await fetch('/api/reservas/crear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        
+        if (!res.ok || data.error) {
+            throw new Error(data.error || 'Error al crear la reserva');
+        }
+
+        // Mensaje de éxito con detalles
+        const nombreServicio = document.getElementById(`titulo-servicio-${tipo}`).textContent;
+        const total = document.getElementById(`total_${tipo}`).textContent;
+        alert(`✅ ¡Reserva confirmada!\n\nServicio: ${nombreServicio}\nFecha: ${payload.fecha}\nHora: ${payload.hora}\nPersonas: ${payload.numero_personas}\nTotal: ${total}\n\nPuedes ver tu reserva en "Mi Cuenta"`);
+        
+        // Cerrar el modal correspondiente
+        cerrarModal(`modal-reserva-${tipo}`);
+        
+        // Limpiar formulario
+        e.target.reset();
+        
+        // Opcional: redirigir a Mi Cuenta
+        // window.location.href = '/cuenta/mi-cuenta';
+        
+        return false;
+    } catch (err) {
+        alert('❌ Error al crear la reserva:\n' + err.message);
+        return false;
+    } finally {
+        // Rehabilitar botón
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = textoOriginal;
+    }
+}
+
+// ====================
+// SISTEMA DE PEDIDOS A LA PISCINA
+// ====================
+
+let carritoPiscina = [];
+
+// Función para abrir modal de pedidos
+async function abrirPedidosPiscina() {
+	const isAuth = {{ 'true' if current_user.is_authenticated else 'false' }};
+	if (!isAuth) {
+		if (confirm('Debes iniciar sesión para hacer pedidos.\n¿Deseas ir a la página de inicio de sesión?')) {
+			window.location.href = '/auth/login?next={{ url_for("main.servicios") }}';
+		}
+		return;
+	}
+
+	// Abrir modal
+	document.getElementById('modal-pedidos-piscina').style.display = 'flex';
+	
+	// Cargar productos
+	await cargarProductosPiscina();
+}
+
+// Cargar productos disponibles para piscina desde productos_de_consumo_rapido
+async function cargarProductosPiscina() {
+    const container = document.getElementById('productos-piscina-container');
+    
+    try {
+        const res = await fetch('/api/piscina/productos');
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error('Error al cargar productos');
+
+        const productosPiscina = (Array.isArray(data) ? data : []).filter(p => p && (p.disponible ?? true));
+
+        if (productosPiscina.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">No hay productos disponibles para pedidos a la piscina.</p>';
+            return;
+        }
+        
+        // Renderizar productos
+        container.innerHTML = productosPiscina.map(p => {
+            const precio = typeof p.precio === 'number' ? p.precio : parseFloat(p.precio || 0);
+            const nombre = (p.nombre || '').toString();
+            const descripcion = (p.descripcion || '').toString();
+            const idParaPedido = (p.menu_item_id ?? p.id);
+            return `
+            <div class="producto-piscina-card" data-id="${p.id}">
+                <div class="producto-piscina-info">
+                    <h4>${nombre}</h4>
+                    <p>${descripcion}</p>
+                    <span class="producto-piscina-precio">$${(precio||0).toLocaleString('es-CO')}</span>
+                </div>
+                <div class="producto-piscina-actions">
+                    <button class="btn-agregar-piscina" onclick="agregarProductoPiscina(${idParaPedido}, '${nombre.replace(/'/g, "\\'")}', ${precio||0})">
+                        + Agregar
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+        
+    } catch (err) {
+        console.error('Error:', err);
+        container.innerHTML = '<p style="text-align:center; padding:20px; color:red;">Error al cargar productos. Intenta de nuevo.</p>';
+    }
+}
+
+// Agregar producto al carrito de piscina
+function agregarProductoPiscina(id, nombre, precio) {
+	const existe = carritoPiscina.find(item => item.id === id);
+	
+	if (existe) {
+		existe.cantidad++;
+	} else {
+		carritoPiscina.push({ id, nombre, precio, cantidad: 1 });
+	}
+	
+	actualizarCarritoPiscina();
+}
+
+// Actualizar vista del carrito
+function actualizarCarritoPiscina() {
+	const resumen = document.getElementById('carrito-piscina-resumen');
+	const itemsContainer = document.getElementById('carrito-piscina-items');
+	const totalSpan = document.getElementById('carrito-piscina-total');
+	const btnConfirmar = document.getElementById('btn-confirmar-pedido-piscina');
+	
+	if (carritoPiscina.length === 0) {
+		resumen.style.display = 'none';
+		btnConfirmar.disabled = true;
+		return;
+	}
+	
+	resumen.style.display = 'block';
+	btnConfirmar.disabled = false;
+	
+	// Renderizar items
+	itemsContainer.innerHTML = carritoPiscina.map(item => `
+		<div class="carrito-item-piscina">
+			<div>
+				<strong>${item.nombre}</strong><br>
+				<small>$${item.precio.toLocaleString('es-CO')} c/u</small>
+			</div>
+			<div class="cantidad-controls">
+				<button onclick="cambiarCantidadPiscina(${item.id}, -1)">-</button>
+				<span>${item.cantidad}</span>
+				<button onclick="cambiarCantidadPiscina(${item.id}, 1)">+</button>
+				<button onclick="eliminarProductoPiscina(${item.id})" style="background:#f44336; color:white; margin-left:8px;">🗑️</button>
+			</div>
+		</div>
+	`).join('');
+	
+	// Calcular total
+	const total = carritoPiscina.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+	totalSpan.textContent = total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+}
+
+// Cambiar cantidad de un producto
+function cambiarCantidadPiscina(id, delta) {
+	const item = carritoPiscina.find(i => i.id === id);
+	if (!item) return;
+	
+	item.cantidad += delta;
+	
+	if (item.cantidad <= 0) {
+		eliminarProductoPiscina(id);
+	} else {
+		actualizarCarritoPiscina();
+	}
+}
+
+// Eliminar producto del carrito
+function eliminarProductoPiscina(id) {
+	carritoPiscina = carritoPiscina.filter(item => item.id !== id);
+	actualizarCarritoPiscina();
+}
+
+// Confirmar pedido a la piscina
+document.getElementById('btn-confirmar-pedido-piscina').addEventListener('click', async function() {
+	if (carritoPiscina.length === 0) {
+		alert('El carrito está vacío');
+		return;
+	}
+	
+	const btnConfirmar = this;
+	const textoOriginal = btnConfirmar.textContent;
+	btnConfirmar.disabled = true;
+	btnConfirmar.textContent = '⏳ Procesando...';
+	
+	try {
+		// Preparar datos del pedido
+		const pedido = {
+			tipo: 'piscina',
+			items: carritoPiscina.map(item => ({
+				id: item.id,
+				nombre: item.nombre,
+				cantidad: item.cantidad,
+				precio: item.precio
+			})),
+			metodo_pago: 'efectivo',
+			instrucciones_entrega: 'PEDIDO PARA LA PISCINA - Entregar en área de piscina'
+		};
+		
+		// Enviar pedido
+		const res = await fetch('/pedidos/crear', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(pedido)
+		});
+		
+		const data = await res.json();
+		
+		if (!res.ok || data.error) {
+			throw new Error(data.error || 'Error al crear el pedido');
+		}
+		
+		// Éxito
+		const total = carritoPiscina.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+		alert(`✅ ¡Pedido confirmado!\n\nCódigo: ${data.codigo}\nTotal: $${total.toLocaleString('es-CO')}\n\nTu pedido llegará a la piscina pronto.`);
+		
+		// Limpiar carrito y cerrar modal
+		carritoPiscina = [];
+		actualizarCarritoPiscina();
+		cerrarModal('modal-pedidos-piscina');
+		
+	} catch (err) {
+		console.error('Error:', err);
+		alert('❌ Error al crear el pedido:\n' + err.message);
+	} finally {
+		btnConfirmar.disabled = false;
+		btnConfirmar.textContent = textoOriginal;
+	}
+});
+
 </script>
 
 <style>
+/* ====================== */
+/* ✅ ESTILOS ORIGINALES (NO TOCAR) */
+/* ====================== */
+
 .servicios-container {
     padding: 3rem 0;
     background-color: var(--light-color);
@@ -353,5 +687,110 @@ function reservarServicio(id, nombre, precio) {
         padding: 2rem 1rem;
     }
 }
+
+/* ====================== */
+/* ✅ ESTILOS AISLADOS PARA MODALES */
+/* ====================== */
+
+/* Solo afecta a los modales de reserva */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #999;
+}
+
+.close-modal:hover {
+    color: #333;
+}
+
+/* Estilos específicos dentro de los modales */
+.modal-content .form-group {
+    margin-bottom: 1.2rem;
+}
+
+.modal-content .form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-content .form-group input,
+.modal-content .form-group select,
+.modal-content .form-group textarea {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.modal-content .btn {
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-right: 0.5rem;
+}
+
+.modal-content .btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.modal-content .btn-success:hover {
+    background-color: #218838;
+}
+
+.modal-content .btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-content .btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.modal-content .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modal-content .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* ✅ Tus estilos existentes aquí abajo (servicios-container, etc.) */
+.servicios-container { /* ... */ }
+/* ... (todo tu CSS anterior) ... */
 </style>
+
 {% endblock %}

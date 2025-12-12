@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}BoodFood - Restaurante{% endblock %}</title>
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- Estilos propios -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
@@ -23,13 +26,13 @@
                 <a href="{{ url_for('main.servicios') }}">Servicios</a>
                 <a href="{{ url_for('main.equipo') }}">Equipo</a>
                 <a href="{{ url_for('main.reservas') }}">Reservas</a>
-                <a href="{{ url_for('main.domicilios') }}">Domicilios</a>
+                <a href="{{ url_for('main.domicilios') }}">Domicilios <span id="carrito-contador" class="badge badge-primary"></span></a>
             </div>
             
             <div class="nav-auth">
                 {% if current_user.is_authenticated %}
                     <div class="user-menu">
-                        <span class="user-name">{{ current_user.nombre }}</span>
+                        <a href="{{ url_for('cuenta.mi_cuenta') }}" class="btn btn-outline">👤 Mi Cuenta</a>
                         
                         {% if current_user.rol == 'admin' %}
                             <a href="{{ url_for('admin.panel_admin') }}" class="btn btn-secondary">Panel Admin</a>
@@ -96,6 +99,13 @@
         </div>
     </footer>
 
+    <!-- Socket.IO Client -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- Nuestros scripts -->
+    <script src="{{ url_for('static', filename='js/boodfood.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/websocket.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>

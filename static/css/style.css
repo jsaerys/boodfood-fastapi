@@ -827,3 +827,481 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ==========================================================================
+   ESTILOS PARA EL NUEVO PANEL DE DOMICILIOS (SOLICITUD DEL USUARIO)
+   ========================================================================== */
+
+/* 1. Estructura principal de 2 columnas */
+.domicilios-layout-nuevo {
+    display: grid;
+    /* Columna principal (Categorías + Productos) y Columna de Carrito */
+    grid-template-columns: 3fr 1fr; 
+    gap: 2rem;
+    padding: 2rem 0;
+}
+
+/* 2. Estilos para la navegación de categorías horizontal */
+.categorias-nav-horizontal {
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    overflow-x: auto; /* Permite desplazamiento horizontal si hay muchas categorías */
+}
+
+.categorias-list-horizontal {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap; /* Evita que los ítems se envuelvan */
+}
+
+.categorias-list-horizontal .categoria-item {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    border-right: 1px solid #eee;
+}
+
+.categorias-list-horizontal .categoria-item:last-child {
+    border-right: none;
+}
+
+.categorias-list-horizontal .categoria-item:hover {
+    background-color: #eee;
+}
+
+.categorias-list-horizontal .categoria-item.active {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+}
+
+/* 3. Estilos para el carrito (resumen del pedido) */
+.carrito-sidebar-nuevo {
+    position: sticky;
+    top: 100px; /* Ajustar según la altura de la barra de navegación */
+    height: fit-content;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.carrito-resumen h4 {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: var(--dark-color);
+}
+
+.carrito-vacio {
+    text-align: center;
+    color: #666;
+    padding: 2rem 0;
+}
+
+.carrito-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #eee;
+}
+
+.carrito-item-info {
+    flex-grow: 1;
+}
+
+.carrito-item-cantidad {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 1rem;
+}
+
+.carrito-item-subtotal {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.carrito-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+    padding: 1rem 0;
+    border-top: 2px solid #eee;
+    margin-top: 1rem;
+}
+
+.btn-cantidad {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.btn-cantidad:hover {
+    background-color: #e55a2b;
+}
+
+/* 4. Ajustes de Responsividad */
+@media (max-width: 992px) {
+    .domicilios-layout-nuevo {
+        grid-template-columns: 1fr; /* Una sola columna en pantallas medianas y pequeñas */
+    }
+
+    .carrito-sidebar-nuevo {
+        position: static; /* Deja de ser sticky */
+        margin-top: 2rem;
+    }
+}
+
+/* 5. Estilos de productos (reutilizados del original) */
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.producto-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.producto-card:hover {
+    transform: translateY(-5px);
+}
+
+.producto-imagen {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.producto-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.producto-imagen-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    background-color: #f0f0f0;
+}
+
+.badge-destacado {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--warning-color);
+    color: var(--dark-color);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.producto-info {
+    padding: 1.5rem;
+}
+
+.producto-nombre {
+    font-size: 1.2rem;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+.producto-descripcion {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.producto-etiquetas {
+    margin-bottom: 1rem;
+}
+
+.etiqueta {
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+    cursor: help;
+}
+
+.producto-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.producto-precio {
+    display: flex;
+    flex-direction: column;
+}
+
+.precio {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.precio-original {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.precio-descuento {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--danger-color);
+}
+
+.btn-agregar {
+    background-color: var(--success-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-agregar:hover {
+    background-color: #05a87e;
+}
+
+
+
+/* ===== MODAL DE CONFIRMACIÓN DE PEDIDO (MEJORADO) ===== */
+
+.modal-confirmacion {
+    /* Fondo oscuro con ligera transparencia */
+    background-color: rgba(0, 0, 0, 0.6); 
+}
+
+.modal-content-confirmacion {
+    /* Diseño más moderno y centrado */
+    max-width: 500px;
+    width: 90%;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modal-open 0.3s ease-out;
+}
+
+@keyframes modal-open {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-content-confirmacion h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 1.8rem;
+}
+
+.modal-subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.modal-resumen {
+    background-color: #f9f9f9;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.modal-resumen h3 {
+    color: var(--dark-color);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #eee;
+}
+
+.resumen-item:last-child {
+    border-bottom: none;
+}
+
+.resumen-total {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 2px solid var(--primary-color);
+    margin-top: 1rem;
+    font-size: 1.2rem;
+}
+
+.pedido-opciones {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pedido-opciones .btn {
+    flex-grow: 1;
+    min-width: 150px;
+}
+
+/* Estilos para el selector de mesa */
+#selector-mesa {
+    padding: 1rem;
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    background-color: #fff8f5;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#selector-mesa .form-label {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+#selector-mesa .form-control {
+    padding: 0.75rem;
+    border-color: var(--primary-color);
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+/* Ajuste para el botón de cancelar */
+.btn-outline {
+    border-color: var(--secondary-color);
+    color: var(--secondary-color);
+    background-color: transparent;
+}
+
+.btn-outline:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+
+
+/* ===== MODAL DE DOMICILIOS (DISEÑO DIFERENTE Y SCROLL) ===== */
+
+.modal-domicilio .modal-content-domicilio {
+    /* Diseño más ancho para formularios */
+    max-width: 600px; 
+    width: 90%;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    
+    /* Habilitar scroll si el contenido es demasiado largo */
+    max-height: 90vh; /* Altura máxima para dejar espacio en la pantalla */
+    overflow-y: auto; /* Barra de desplazamiento vertical */
+}
+
+.modal-content-domicilio h2 {
+    color: var(--secondary-color); /* Usar el color secundario para diferenciar */
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+    font-size: 2rem;
+}
+
+.modal-content-domicilio .form-group {
+    margin-bottom: 1rem;
+}
+
+.modal-content-domicilio .form-label {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.modal-resumen-domicilio {
+    background-color: var(--light-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.modal-resumen-domicilio h3 {
+    color: var(--secondary-color);
+    margin-top: 0;
+    margin-bottom: 0.8rem;
+    font-size: 1.2rem;
+}
+
+/* Estilos para los botones de acción en el modal de domicilios */
+.modal-content-domicilio .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.modal-content-domicilio .btn-primary {
+    background-color: var(--secondary-color);
+}
+
+.modal-content-domicilio .btn-primary:hover {
+    background-color: #003c6b;
+}
+
+.modal-content-domicilio .btn-outline {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+.modal-content-domicilio .btn-outline:hover {
+    background-color: var(--danger-color);
+    color: white;
+}
+

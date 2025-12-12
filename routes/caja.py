@@ -37,6 +37,9 @@ def panel_caja():
 @cajero_required
 def facturas_pendientes():
     """Obtener facturas pendientes de pago"""
+    if Factura is None:
+        return jsonify({'error': 'Funcionalidad de facturas no disponible'}), 404
+
     facturas = Factura.query.filter_by(estado='pendiente').order_by(Factura.fecha_creacion.desc()).all()
     
     facturas_data = []
@@ -99,6 +102,8 @@ def despachar_pedido_piscina(pedido_id):
 def pagar_factura(factura_id):
     """Registrar el pago de una factura"""
     try:
+        if Factura is None:
+            return jsonify({'error': 'Funcionalidad de facturas no disponible'}), 404
         data = request.get_json()
         metodo_pago = data.get('metodo_pago', 'efectivo')
         
@@ -154,6 +159,8 @@ def obtener_cuenta_mesa(mesa_id):
 def crear_factura():
     """Crear una factura para un pedido"""
     try:
+        if Factura is None:
+            return jsonify({'error': 'Funcionalidad de facturas no disponible'}), 404
         data = request.get_json()
         pedido_id = data.get('pedido_id')
         

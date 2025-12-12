@@ -1,0 +1,55 @@
+<!-- templates/admin/usuarios_content.html -->
+<div class="card">
+  <div class="card-header"><strong>➕ Crear Nuevo Usuario</strong></div>
+  <div class="card-body">
+    <form id="form-crear-usuario" onsubmit="return false;">
+      <div class="row">
+        <div><label>Nombre *</label><input type="text" id="new-user-nombre" placeholder="Nombre" required></div>
+        <div><label>Apellido *</label><input type="text" id="new-user-apellido" placeholder="Apellido" required></div>
+        <div><label>Email *</label><input type="email" id="new-user-email" placeholder="correo@ejemplo.com" required></div>
+        <div><label>Teléfono</label><input type="tel" id="new-user-telefono" placeholder="3001234567"></div>
+      </div>
+      <div class="row">
+        <div><label>Rol *</label>
+          <select id="new-user-rol" required>
+            <option value="cliente">Cliente</option>
+            <option value="mesero">Mesero</option>
+            <option value="cocinero">Cocinero</option>
+            <option value="cajero">Cajero</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div><label>Contraseña *</label><input type="password" id="new-user-password" placeholder="Contraseña segura" required></div>
+        <div><label>Estado</label>
+          <select id="new-user-activo">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+      </div>
+      <button class="primary" type="button" onclick="window.crearUsuario()">Crear Usuario</button>
+    </form>
+  </div>
+</div>
+
+<!-- Sección de listado de usuarios -->
+<div class="card" style="margin-top:16px;">
+  <div class="card-header">
+    <strong>👥 Usuarios <span id="usuarios-count">0</span></strong>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <select id="filter-rol-usuario" onchange="window.filtrarUsuarios()">
+        <option value="todos">Todos los roles</option>
+        <option value="cliente">Clientes</option>
+        <option value="mesero">Meseros</option>
+        <option value="cocinero">Cocineros</option>
+        <option value="cajero">Cajeros</option>
+        <option value="admin">Administradores</option>
+      </select>
+      <input type="text" id="search-usuario" placeholder="Buscar por nombre o email" onkeyup="window.buscarUsuarios()">
+      <button class="secondary" onclick="window.cargarUsuarios()">🔄 Actualizar</button>
+    </div>
+  </div>
+  <div class="card-body" id="usuarios-table">
+    <!-- La tabla de usuarios se cargará dinámicamente por static/js/admin/usuarios.js -->
+  </div>
+</div>

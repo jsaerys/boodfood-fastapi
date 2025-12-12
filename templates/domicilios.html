@@ -12,21 +12,86 @@
 
 <div class="domicilios-container">
     <div class="container">
-        <div class="domicilios-layout">
-            <!-- Menú de categorías -->
-            <aside class="categorias-sidebar">
-                <h3>Categorías</h3>
-                <ul class="categorias-list">
-                    <li class="categoria-item active" data-categoria="todas">
-                        <span>🍽️ Todas</span>
-                    </li>
-                    {% for categoria in categorias %}
-                    <li class="categoria-item" data-categoria="{{ categoria.id }}">
-                        <span>{{ categoria.nombre }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+        <div class="domicilios-layout-nuevo">
+            <!-- Columna principal: Categorías y Productos -->
+            <div class="main-content-pedido">
+                <!-- Menú de categorías (Horizontal) -->
+                <nav class="categorias-nav-horizontal">
+                    <ul class="categorias-list-horizontal">
+                        <li class="categoria-item active" data-categoria="todas">
+                            <span>🍽️ Todas</span>
+                        </li>
+                        {% for categoria in categorias %}
+                        <li class="categoria-item" data-categoria="{{ categoria.id }}">
+                            <span>{{ categoria.nombre }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
                 
+                <!-- Grid de productos -->
+                <main class="productos-main">
+                    <div class="productos-header">
+                        <input type="text" id="search-productos" class="form-control" placeholder="Buscar productos...">
+                    </div>
+                    
+                    <div id="productos-grid" class="productos-grid">
+                        {% for item in items %}
+                        <div class="producto-card" data-id="{{ item.id }}" data-categoria="{{ item.categoria_id }}">
+                            <div class="producto-imagen">
+                                {% if item.imagen_url %}
+                                <img src="{{ item.imagen_url }}" alt="{{ item.nombre }}" onerror="this.onerror=null;this.src='https://placehold.co/400x300?text=Sin+Imagen';">
+                                {% else %}
+                                <img src="https://placehold.co/400x300?text=Sin+Imagen" alt="{{ item.nombre }}">
+                                {% endif %}
+                                
+                                {% if item.destacado %}
+                                <span class="badge badge-destacado">Destacado</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="producto-info">
+                                <h3 class="producto-nombre">{{ item.nombre }}</h3>
+                                <p class="producto-descripcion">{{ item.descripcion }}</p>
+                                
+                                <div class="producto-etiquetas">
+                                    {% if item.vegetariano %}
+                                    <span class="etiqueta etiqueta-vegetariano" title="Vegetariano">🌱</span>
+                                    {% endif %}
+                                    {% if item.vegano %}
+                                    <span class="etiqueta etiqueta-vegano" title="Vegano">🥬</span>
+                                    {% endif %}
+                                    {% if item.sin_gluten %}
+                                    <span class="etiqueta etiqueta-sin-gluten" title="Sin Gluten">🌾</span>
+                                    {% endif %}
+                                    {% if item.picante %}
+                                    <span class="etiqueta etiqueta-picante" title="Picante">🌶️</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="producto-footer">
+                                    <div class="producto-precio">
+                                        {% if item.precio_descuento %}
+                                        <span class="precio-original">${{ "{:,.0f}".format(item.precio) }}</span>
+                                        <span class="precio-descuento">${{ "{:,.0f}".format(item.precio_descuento) }}</span>
+                                        {% else %}
+                                        <span class="precio">${{ "{:,.0f}".format(item.precio) }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <button class="btn btn-agregar" onclick="agregarAlCarrito({{ item.id }}, '{{ item.nombre|e }}', {{ item.precio_descuento or item.precio }})">
+                                        Agregar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </main>
+            </div>
+
+            <!-- Columna de resumen del pedido (Carrito) -->
+            <aside class="carrito-sidebar-nuevo">
                 <div class="carrito-resumen">
                     <h4>Tu Pedido</h4>
                     <div id="carrito-items"></div>
@@ -39,80 +104,20 @@
                     </button>
                 </div>
             </aside>
-            
-            <!-- Grid de productos -->
-            <main class="productos-main">
-                <div class="productos-header">
-                    <input type="text" id="search-productos" class="form-control" placeholder="Buscar productos...">
-                </div>
-                
-                <div id="productos-grid" class="productos-grid">
-                    {% for item in items %}
-                    <div class="producto-card" data-id="{{ item.id }}" data-categoria="{{ item.categoria_id }}">
-                        <div class="producto-imagen">
-                            {% if item.imagen_url %}
-                            <img src="{{ item.imagen_url }}" alt="{{ item.nombre }}">
-                            {% else %}
-                            <div class="producto-imagen-placeholder">🍽️</div>
-                            {% endif %}
-                            
-                            {% if item.destacado %}
-                            <span class="badge badge-destacado">Destacado</span>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="producto-info">
-                            <h3 class="producto-nombre">{{ item.nombre }}</h3>
-                            <p class="producto-descripcion">{{ item.descripcion }}</p>
-                            
-                            <div class="producto-etiquetas">
-                                {% if item.vegetariano %}
-                                <span class="etiqueta etiqueta-vegetariano" title="Vegetariano">🌱</span>
-                                {% endif %}
-                                {% if item.vegano %}
-                                <span class="etiqueta etiqueta-vegano" title="Vegano">🥬</span>
-                                {% endif %}
-                                {% if item.sin_gluten %}
-                                <span class="etiqueta etiqueta-sin-gluten" title="Sin Gluten">🌾</span>
-                                {% endif %}
-                                {% if item.picante %}
-                                <span class="etiqueta etiqueta-picante" title="Picante">🌶️</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="producto-footer">
-                                <div class="producto-precio">
-                                    {% if item.precio_descuento %}
-                                    <span class="precio-original">${{ "{:,.0f}".format(item.precio) }}</span>
-                                    <span class="precio-descuento">${{ "{:,.0f}".format(item.precio_descuento) }}</span>
-                                    {% else %}
-                                    <span class="precio">${{ "{:,.0f}".format(item.precio) }}</span>
-                                    {% endif %}
-                                </div>
-                                
-                                <button class="btn btn-agregar" onclick="agregarAlCarrito({{ item.id }}, '{{ item.nombre }}', {{ item.precio_descuento or item.precio }})">
-                                    Agregar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </main>
         </div>
     </div>
 </div>
 
 <!-- Modal de finalizar pedido -->
-<div id="modal-pedido" class="modal">
-    <div class="modal-content">
+<div id="modal-pedido" class="modal modal-domicilio">
+    <div class="modal-content modal-content-domicilio" style="max-height: 85vh; overflow-y: auto;">
         <span class="modal-close">&times;</span>
         <h2>Finalizar Pedido</h2>
         
         <form id="form-pedido">
             <div class="form-group">
                 <label for="direccion_entrega">Dirección de Entrega *</label>
-                <textarea id="direccion_entrega" name="direccion_entrega" required class="form-control" rows="3"></textarea>
+                <textarea id="direccion_entrega" name="direccion_entrega" required class="form-control" rows="3" placeholder="Calle, número, barrio, ciudad"></textarea>
             </div>
             
             <div class="form-group">
@@ -139,13 +144,16 @@
                 </select>
             </div>
             
-            <div class="pedido-resumen">
+            <div class="pedido-resumen modal-resumen-domicilio">
                 <h3>Resumen del Pedido</h3>
                 <div id="resumen-items"></div>
                 <div class="resumen-total">
                     <strong>Total a Pagar:</strong>
                     <span id="resumen-total">$0</span>
                 </div>
+                <small style="color: #666; display: block; margin-top: 0.5rem;">
+                    💡 Pedido mínimo: $20.000 - Tiempo estimado de entrega: 30-45 min
+                </small>
             </div>
             
             <div class="form-actions">
@@ -157,48 +165,40 @@
 </div>
 
 <script>
-let carrito = [];
-
+// Usar carrito global persistente (localStorage)
 function agregarAlCarrito(id, nombre, precio) {
-    const itemExistente = carrito.find(item => item.id === id);
-    
-    if (itemExistente) {
-        itemExistente.cantidad++;
-    } else {
-        carrito.push({
-            id: id,
-            nombre: nombre,
-            precio: precio,
-            cantidad: 1
-        });
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    if (!carrito) {
+        console.error('Carrito no disponible');
+        alert('Error al agregar al carrito. Por favor recarga la página.');
+        return;
     }
-    
+    carrito.agregar({ id, nombre, precio, cantidad: 1 });
     actualizarCarrito();
 }
 
 function eliminarDelCarrito(id) {
-    carrito = carrito.filter(item => item.id !== id);
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    if (!carrito) return;
+    carrito.remover(id);
     actualizarCarrito();
 }
 
 function cambiarCantidad(id, cambio) {
-    const item = carrito.find(item => item.id === id);
-    if (item) {
-        item.cantidad += cambio;
-        if (item.cantidad <= 0) {
-            eliminarDelCarrito(id);
-        } else {
-            actualizarCarrito();
-        }
-    }
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    if (!carrito) return;
+    if (cambio > 0) carrito.incrementar(id); else carrito.decrementar(id);
+    actualizarCarrito();
 }
 
 function actualizarCarrito() {
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
     const carritoItems = document.getElementById('carrito-items');
     const carritoTotal = document.getElementById('carrito-total');
     const btnFinalizar = document.getElementById('btn-finalizar-pedido');
     
-    if (carrito.length === 0) {
+    const items = carrito ? carrito.obtenerItems() : [];
+    if (items.length === 0) {
         carritoItems.innerHTML = '<p class="carrito-vacio">Tu carrito está vacío</p>';
         carritoTotal.textContent = '$0';
         btnFinalizar.disabled = true;
@@ -208,7 +208,7 @@ function actualizarCarrito() {
     let html = '';
     let total = 0;
     
-    carrito.forEach(item => {
+    items.forEach(item => {
         const subtotal = item.precio * item.cantidad;
         total += subtotal;
         
@@ -233,6 +233,23 @@ function actualizarCarrito() {
     carritoItems.innerHTML = html;
     carritoTotal.textContent = '$' + total.toLocaleString();
     btnFinalizar.disabled = false;
+
+    // Actualizar resumen del modal
+    const resumenItems = document.getElementById('resumen-items');
+    const resumenTotal = document.getElementById('resumen-total');
+    
+    let resumenHtml = '';
+    items.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        resumenHtml += `
+            <div class="resumen-item">
+                <span>${item.cantidad} x ${item.nombre}</span>
+                <span>$${subtotal.toLocaleString()}</span>
+            </div>
+        `;
+    });
+    resumenItems.innerHTML = resumenHtml;
+    resumenTotal.textContent = '$' + total.toLocaleString();
 }
 
 // Filtrar por categoría
@@ -254,343 +271,183 @@ document.querySelectorAll('.categoria-item').forEach(item => {
     });
 });
 
-// Buscar productos
-document.getElementById('search-productos').addEventListener('input', function() {
-    const busqueda = this.value.toLowerCase();
+// Inicializar y manejar el modal
+const modal = document.getElementById('modal-pedido');
+const btnFinalizar = document.getElementById('btn-finalizar-pedido');
+const spanClose = document.querySelector('.modal-close');
+
+const isAuth = {{ 'true' if current_user.is_authenticated else 'false' }};
+
+btnFinalizar.onclick = function() {
+    // Verificar autenticación
+    if (!isAuth) {
+        if (confirm('Debes iniciar sesión para hacer un pedido.\n¿Deseas ir a la página de inicio de sesión?')) {
+            window.location.href = '{{ url_for("auth.login") }}?next={{ url_for("main.domicilios") }}';
+        }
+        return;
+    }
+    
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    const items = carrito ? carrito.obtenerItems() : [];
+    if (items.length > 0) {
+        modal.style.display = 'block';
+    }
+}
+
+spanClose.onclick = function() {
+    cerrarModal();
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        cerrarModal();
+    }
+}
+
+function cerrarModal() {
+    modal.style.display = 'none';
+}
+
+// Manejar el envío del formulario con conexión a la base de datos
+document.getElementById('form-pedido').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const carrito = window.BoodFood ? window.BoodFood.obtenerCarrito() : null;
+    const items = carrito ? carrito.obtenerItems() : [];
+    if (items.length === 0) {
+        alert('Tu carrito está vacío');
+        return;
+    }
+    
+    // Validar pedido mínimo
+    const total = items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const PEDIDO_MINIMO = 20000;
+    if (total < PEDIDO_MINIMO) {
+        alert(`El pedido mínimo para domicilios es de $${PEDIDO_MINIMO.toLocaleString()}.\nTotal actual: $${total.toLocaleString()}\nAgrega $${(PEDIDO_MINIMO - total).toLocaleString()} más para continuar.`);
+        cerrarModal();
+        return;
+    }
+    
+    // Validar campos requeridos
+    const direccion = document.getElementById('direccion_entrega').value.trim();
+    const telefono = document.getElementById('telefono_contacto').value.trim();
+    const nombre = document.getElementById('nombre_receptor').value.trim();
+    const metodoPago = document.getElementById('metodo_pago').value;
+    
+    if (!direccion || !telefono || !nombre || !metodoPago) {
+        alert('Por favor completa todos los campos obligatorios (*)');
+        return;
+    }
+    
+    // Validar teléfono (mínimo 7 dígitos)
+    const telefonoLimpio = telefono.replace(/\D/g, '');
+    if (telefonoLimpio.length < 7) {
+        alert('Por favor ingresa un número de teléfono válido');
+        document.getElementById('telefono_contacto').focus();
+        return;
+    }
+    
+    // Deshabilitar botón para evitar doble envío
+    const btnSubmit = this.querySelector('button[type="submit"]');
+    const textoOriginal = btnSubmit.textContent;
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Procesando...';
+    
+    // Obtener datos del formulario
+    const formData = new FormData(this);
+    const datosPedido = {
+        tipo: 'domicilio',
+        metodo_pago: formData.get('metodo_pago'),
+        direccion_entrega: formData.get('direccion_entrega'),
+        telefono_contacto: formData.get('telefono_contacto'),
+        nombre_receptor: formData.get('nombre_receptor'),
+        instrucciones_entrega: formData.get('instrucciones') || '',
+        items: items.map(item => ({
+            id: item.id,
+            nombre: item.nombre,
+            precio: item.precio,
+            cantidad: item.cantidad
+        }))
+    };
+    
+    // Enviar al servidor
+    fetch('/pedidos/crear', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(datosPedido)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const total = document.getElementById('resumen-total').textContent;
+            alert(`✅ ¡Pedido realizado con éxito!\n\nCódigo: ${data.codigo}\nTotal: ${total}\n\nTu pedido llegará pronto. ¡Gracias por tu compra!`);
+            
+            // Limpiar carrito y formulario
+            if (carrito) carrito.vaciar();
+            actualizarCarrito();
+            document.getElementById('form-pedido').reset();
+            cerrarModal();
+            
+            // Opcional: redirigir a Mi Cuenta para ver el pedido
+            // window.location.href = '/cuenta/mi-cuenta';
+        } else {
+            alert('❌ Error al crear el pedido: ' + (data.error || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ Error de conexión. Por favor, verifica tu internet e intenta nuevamente.');
+    })
+    .finally(() => {
+        // Rehabilitar botón
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = textoOriginal;
+    });
+});
+
+// Inicializar el carrito al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarCarrito();
+    
+    // Validación en tiempo real del teléfono
+    const telefonoInput = document.getElementById('telefono_contacto');
+    if (telefonoInput) {
+        telefonoInput.addEventListener('input', function() {
+            // Permitir solo números, espacios, guiones y paréntesis
+            this.value = this.value.replace(/[^\d\s\-\(\)\+]/g, '');
+        });
+    }
+    
+    // Contador de caracteres para dirección
+    const direccionTextarea = document.getElementById('direccion_entrega');
+    if (direccionTextarea) {
+        direccionTextarea.addEventListener('input', function() {
+            if (this.value.length < 10) {
+                this.style.borderColor = '#ffc107';
+            } else {
+                this.style.borderColor = '#28a745';
+            }
+        });
+    }
+});
+
+// Función para buscar productos
+document.getElementById('search-productos').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
     const productos = document.querySelectorAll('.producto-card');
     
     productos.forEach(producto => {
         const nombre = producto.querySelector('.producto-nombre').textContent.toLowerCase();
         const descripcion = producto.querySelector('.producto-descripcion').textContent.toLowerCase();
         
-        if (nombre.includes(busqueda) || descripcion.includes(busqueda)) {
+        if (nombre.includes(searchTerm) || descripcion.includes(searchTerm)) {
             producto.style.display = 'block';
         } else {
             producto.style.display = 'none';
         }
     });
 });
-
-// Finalizar pedido
-document.getElementById('btn-finalizar-pedido').addEventListener('click', function() {
-    if (!{{ 'true' if current_user.is_authenticated else 'false' }}) {
-        alert('Debes iniciar sesión para hacer un pedido');
-        window.location.href = '/auth/login';
-        return;
-    }
-    
-    // Mostrar modal
-    document.getElementById('modal-pedido').style.display = 'block';
-    
-    // Actualizar resumen
-    let html = '';
-    let total = 0;
-    
-    carrito.forEach(item => {
-        const subtotal = item.precio * item.cantidad;
-        total += subtotal;
-        html += `<div class="resumen-item">${item.cantidad}x ${item.nombre} - $${subtotal.toLocaleString()}</div>`;
-    });
-    
-    document.getElementById('resumen-items').innerHTML = html;
-    document.getElementById('resumen-total').textContent = '$' + total.toLocaleString();
-});
-
-// Cerrar modal
-function cerrarModal() {
-    document.getElementById('modal-pedido').style.display = 'none';
-}
-
-document.querySelector('.modal-close').addEventListener('click', cerrarModal);
-
-// Enviar pedido
-document.getElementById('form-pedido').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const pedidoData = {
-        items: carrito.map(item => ({
-            menu_item_id: item.id,
-            cantidad: item.cantidad
-        })),
-        direccion_entrega: document.getElementById('direccion_entrega').value,
-        telefono_contacto: document.getElementById('telefono_contacto').value,
-        nombre_receptor: document.getElementById('nombre_receptor').value,
-        instrucciones: document.getElementById('instrucciones').value,
-        metodo_pago: document.getElementById('metodo_pago').value
-    };
-    
-    try {
-        const response = await fetch('/api/pedidos/crear', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(pedidoData)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            alert('¡Pedido creado exitosamente! Código: ' + data.pedido.codigo_pedido);
-            carrito = [];
-            actualizarCarrito();
-            cerrarModal();
-            window.location.href = '/';
-        } else {
-            alert('Error: ' + data.error);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al crear el pedido. Por favor intenta nuevamente.');
-    }
-});
 </script>
-
-<style>
-.domicilios-container {
-    padding: 2rem 0;
-    background-color: var(--light-color);
-    min-height: calc(100vh - 200px);
-}
-
-.domicilios-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 2rem;
-}
-
-.categorias-sidebar {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 10px;
-    height: fit-content;
-    position: sticky;
-    top: 100px;
-}
-
-.categorias-list {
-    list-style: none;
-    padding: 0;
-    margin-bottom: 2rem;
-}
-
-.categoria-item {
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.categoria-item:hover,
-.categoria-item.active {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.carrito-resumen {
-    border-top: 2px solid var(--border-color);
-    padding-top: 1rem;
-}
-
-.carrito-item {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.carrito-item-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.carrito-item-cantidad {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.btn-cantidad {
-    width: 25px;
-    height: 25px;
-    border: 1px solid var(--border-color);
-    background: white;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.carrito-total {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem 0;
-    font-size: 1.2rem;
-}
-
-.productos-main {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-}
-
-.productos-header {
-    margin-bottom: 2rem;
-}
-
-.productos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-}
-
-.producto-card {
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: all 0.3s;
-}
-
-.producto-card:hover {
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transform: translateY(-5px);
-}
-
-.producto-imagen {
-    position: relative;
-    height: 200px;
-    overflow: hidden;
-}
-
-.producto-imagen img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.producto-imagen-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--light-color);
-    font-size: 4rem;
-}
-
-.badge-destacado {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: var(--warning-color);
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-}
-
-.producto-info {
-    padding: 1rem;
-}
-
-.producto-nombre {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-}
-
-.producto-descripcion {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 0.75rem;
-}
-
-.producto-etiquetas {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-}
-
-.etiqueta {
-    font-size: 1.2rem;
-}
-
-.producto-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.precio {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-.precio-original {
-    text-decoration: line-through;
-    color: #999;
-    margin-right: 0.5rem;
-}
-
-.precio-descuento {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--danger-color);
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: white;
-    margin: 5% auto;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.modal-close {
-    float: right;
-    font-size: 2rem;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.resumen-item {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.resumen-total {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem 0;
-    font-size: 1.3rem;
-    font-weight: bold;
-}
-
-@media (max-width: 768px) {
-    .domicilios-layout {
-        grid-template-columns: 1fr;
-    }
-    
-    .categorias-sidebar {
-        position: static;
-    }
-    
-    .productos-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
 {% endblock %}
