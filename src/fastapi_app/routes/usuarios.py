@@ -4,9 +4,9 @@ Rutas de usuarios FastAPI
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from fastapi_app.dependencies import get_db, get_current_user, require_admin
-from fastapi_app.schemas import UsuarioResponse, UsuarioCreate, UsuarioUpdate, MessageResponse
-from models import Usuario
+from ..dependencies import get_db, get_current_user, require_admin
+from ..schemas import UsuarioResponse, UsuarioCreate, UsuarioUpdate, MessageResponse
+from ...app.models import Usuario
 import bcrypt
 
 router = APIRouter()

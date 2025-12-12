@@ -3,9 +3,9 @@ Service layer para usuarios — lógica de negocio relacionada con usuarios.
 """
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from models import Usuario
+from app.models import Usuario
 import bcrypt
-from fastapi_app.repositories.usuarios_repo import (
+from ..repositories.usuarios_repo import (
     list_usuarios, get_usuario, find_by_email, create_usuario, update_usuario, delete_usuario
 )
 

@@ -3,7 +3,7 @@ Repository layer para usuarios
 """
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from models import Usuario
+from app.models import Usuario
 
 
 def list_usuarios(db: Session, activo: Optional[bool] = None, rol: Optional[str] = None, limit: int = 50) -> List[Usuario]:

@@ -4,9 +4,9 @@ Rutas de menú FastAPI
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from fastapi_app.dependencies import get_db, require_admin
-from fastapi_app.schemas import MenuItemResponse, MenuItemCreate, MenuItemUpdate, MessageResponse
-from models import Usuario, MenuItem
+from ..dependencies import get_db, require_admin
+from ..schemas import MenuItemResponse, MenuItemCreate, MenuItemUpdate, MessageResponse
+from ...app.models import Usuario, MenuItem
 
 router = APIRouter()
 

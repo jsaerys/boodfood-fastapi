@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
-from fastapi_app.dependencies import get_db, get_current_user
-from fastapi_app.schemas import ReservaResponse, ReservaCreate, ReservaUpdate, MessageResponse
-from models import Usuario, Reserva, Mesa
+from ..dependencies import get_db, get_current_user
+from ..schemas import ReservaResponse, ReservaCreate, ReservaUpdate, MessageResponse
+from ...app.models import Usuario, Reserva, Mesa
 
 router = APIRouter()
 

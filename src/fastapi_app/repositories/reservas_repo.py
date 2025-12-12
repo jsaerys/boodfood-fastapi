@@ -3,7 +3,7 @@ Repository layer para reservas
 """
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from models import Reserva
+from app.models import Reserva
 
 
 def query_reservas(db: Session, usuario_id: Optional[int] = None, estado: Optional[str] = None, limit: int = 50) -> List[Reserva]:

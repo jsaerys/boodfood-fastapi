@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 import uuid
-from fastapi_app.dependencies import get_db, get_current_user
-from fastapi_app.schemas import PedidoResponse, PedidoCreate, PedidoUpdate, MessageResponse
-from models import Usuario, Pedido, PedidoItem, MenuItem, Mesa
+from ..dependencies import get_db, get_current_user
+from ..schemas import PedidoResponse, PedidoCreate, PedidoUpdate, MessageResponse
+from ...app.models import Usuario, Pedido, PedidoItem, MenuItem, Mesa
 
 router = APIRouter()
 

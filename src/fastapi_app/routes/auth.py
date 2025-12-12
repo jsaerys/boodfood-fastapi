@@ -3,9 +3,9 @@ Rutas de autenticación FastAPI
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from fastapi_app.dependencies import get_db, create_access_token
-from fastapi_app.schemas import LoginRequest, LoginResponse, RegisterRequest, MessageResponse
-from models import Usuario
+from ..dependencies import get_db, create_access_token
+from ..schemas import LoginRequest, LoginResponse, RegisterRequest, MessageResponse
+from ...app.models import Usuario
 import bcrypt
 
 router = APIRouter()

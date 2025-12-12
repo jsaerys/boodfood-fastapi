@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from fastapi_app.dependencies import get_db, require_admin
-from fastapi_app.schemas import MenuItemResponse, MenuItemCreate, MenuItemUpdate, MessageResponse
-from fastapi_app.services.menu_service import (
+from ..dependencies import get_db, require_admin
+from ..schemas import MenuItemResponse, MenuItemCreate, MenuItemUpdate, MessageResponse
+from ..services.menu_service import (
 	obtener_menu, obtener_item, crear_item, actualizar_item, eliminar_item, obtener_categorias
 )
 

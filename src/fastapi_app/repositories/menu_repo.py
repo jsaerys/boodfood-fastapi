@@ -3,7 +3,7 @@ Repository layer para menu
 """
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from models import MenuItem
+from app.models import MenuItem
 
 
 def list_menu(db: Session, disponible: Optional[bool] = None, categoria: Optional[str] = None, destacado: Optional[bool] = None) -> List[MenuItem]:

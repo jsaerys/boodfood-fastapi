@@ -3,8 +3,8 @@ Service layer for mesas — lógica de negocio independiente de web.
 """
 from typing import Optional, List, Dict
 from sqlalchemy.orm import Session
-from models import Mesa
-from fastapi_app.repositories.mesas_repo import (
+from app.models import Mesa
+from ..repositories.mesas_repo import (
     list_mesas, get_mesa, create_mesa, update_mesa, delete_mesa, has_active_pedido
 )
 

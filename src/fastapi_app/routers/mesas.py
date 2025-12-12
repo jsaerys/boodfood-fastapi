@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from fastapi_app.dependencies import get_db, require_admin
-from fastapi_app.schemas import MesaResponse, MesaCreate, MesaUpdate, MessageResponse
-from fastapi_app.services.mesas_service import (
+from ..dependencies import get_db, require_admin
+from ..schemas import MesaResponse, MesaCreate, MesaUpdate, MessageResponse
+from ..services.mesas_service import (
 	obtener_mesas, obtener_mesa, crear_mesa, actualizar_mesa, eliminar_mesa
 )
 

@@ -2,10 +2,10 @@
 Service layer para autenticación (login/register)
 """
 from sqlalchemy.orm import Session
-from models import Usuario
+from app.models import Usuario
 import bcrypt
-from fastapi_app.repositories.usuarios_repo import find_by_email, create_usuario
-from fastapi_app.dependencies import create_access_token
+from ..repositories.usuarios_repo import find_by_email, create_usuario
+from ..dependencies import create_access_token
 
 
 def login_user(db: Session, email: str, password: str):

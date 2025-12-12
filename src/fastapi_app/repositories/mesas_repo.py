@@ -3,7 +3,7 @@ Repository layer for mesas — encapsula queries a la base de datos.
 """
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from models import Mesa, Pedido
+from app.models import Mesa, Pedido
 
 
 def list_mesas(db: Session, disponible: Optional[bool] = None, tipo: Optional[str] = None) -> List[Mesa]:

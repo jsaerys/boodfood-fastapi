@@ -3,9 +3,9 @@ Routers de autenticación (login/register) usando auth_service
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from fastapi_app.dependencies import get_db
-from fastapi_app.schemas import LoginRequest, LoginResponse, RegisterRequest, MessageResponse
-from fastapi_app.services.auth_service import login_user, register_user
+from ..dependencies import get_db
+from ..schemas import LoginRequest, LoginResponse, RegisterRequest, MessageResponse
+from ..services.auth_service import login_user, register_user
 
 router = APIRouter()
 

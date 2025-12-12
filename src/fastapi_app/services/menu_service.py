@@ -3,8 +3,8 @@ Service layer para menu — lógica de negocio de items del menú
 """
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from models import MenuItem
-from fastapi_app.repositories.menu_repo import (
+from app.models import MenuItem
+from ..repositories.menu_repo import (
     list_menu, get_item, create_item, update_item, delete_item, list_categorias
 )
 

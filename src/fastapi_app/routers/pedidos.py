@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from fastapi_app.dependencies import get_db, get_current_user
-from fastapi_app.schemas import PedidoResponse, PedidoCreate, PedidoUpdate, MessageResponse
-from fastapi_app.services.pedidos_service import (
+from ..dependencies import get_db, get_current_user
+from ..schemas import PedidoResponse, PedidoCreate, PedidoUpdate, MessageResponse
+from ..services.pedidos_service import (
 	obtener_pedidos, obtener_pedido, crear_pedido, actualizar_pedido
 )
 

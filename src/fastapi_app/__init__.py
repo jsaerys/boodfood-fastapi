@@ -30,6 +30,13 @@ async def lifespan(app: FastAPI):
         try:
             flask_module = importlib.import_module('app.app')
             create_flask_app = getattr(flask_module, 'create_app', None)
+        except (ImportError, AttributeError):
+            try:
+                # Intentar alternativa si la primera falla
+                from app.app import create_app
+                create_flask_app = create_app
+            except (ImportError, AttributeError):
+                create_flask_app = None
         except Exception:
             create_flask_app = None
 

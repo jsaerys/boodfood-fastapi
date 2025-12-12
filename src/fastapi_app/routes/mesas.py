@@ -4,9 +4,9 @@ Rutas de mesas FastAPI
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from fastapi_app.dependencies import get_db, get_current_user, require_admin
-from fastapi_app.schemas import MesaResponse, MesaCreate, MesaUpdate, MessageResponse
-from models import Usuario, Mesa, Pedido
+from ..dependencies import get_db, get_current_user, require_admin
+from ..schemas import MesaResponse, MesaCreate, MesaUpdate, MessageResponse
+from ...app.models import Usuario, Mesa, Pedido
 
 router = APIRouter()
 

@@ -5,8 +5,8 @@ from typing import List, Optional, Dict
 from sqlalchemy.orm import Session
 from datetime import datetime
 import uuid
-from models import Pedido, PedidoItem, MenuItem
-from fastapi_app.repositories.pedidos_repo import (
+from app.models import Pedido, PedidoItem, MenuItem
+from ..repositories.pedidos_repo import (
     query_pedidos, get_pedido, add_pedido, add_pedido_item, commit, refresh, update_pedido
 )
 

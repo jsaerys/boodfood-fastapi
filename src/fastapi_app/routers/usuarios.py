@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from fastapi_app.dependencies import get_db, get_current_user, require_admin
-from fastapi_app.schemas import UsuarioResponse, UsuarioCreate, UsuarioUpdate, MessageResponse
-from fastapi_app.services.usuarios_service import (
+from ..dependencies import get_db, get_current_user, require_admin
+from ..schemas import UsuarioResponse, UsuarioCreate, UsuarioUpdate, MessageResponse
+from ..services.usuarios_service import (
 	obtener_usuarios, obtener_usuario, crear_usuario_admin, actualizar_usuario, eliminar_usuario
 )
 

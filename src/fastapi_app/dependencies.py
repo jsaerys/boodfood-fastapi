@@ -5,10 +5,10 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from fastapi_app.models import db, Usuario
+from .models import db, Usuario
 import jwt
 from datetime import datetime, timedelta
-from config import Config
+from config.config import Config
 
 # Seguridad
 security = HTTPBearer()

@@ -4,8 +4,8 @@ Service layer para reservas — lógica de negocio.
 from typing import List, Optional, Dict
 from sqlalchemy.orm import Session
 from datetime import datetime
-from models import Reserva, Mesa
-from fastapi_app.repositories.reservas_repo import query_reservas, get_reserva, add_reserva, update_reserva
+from app.models import Reserva, Mesa
+from ..repositories.reservas_repo import query_reservas, get_reserva, add_reserva, update_reserva
 
 
 def obtener_reservas(db: Session, current_user, estado: Optional[str] = None, limit: int = 50) -> List[Reserva]:

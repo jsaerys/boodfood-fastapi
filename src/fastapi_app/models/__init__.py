@@ -3,7 +3,7 @@ Re-export de modelos del paquete raíz `models`.
 Usar `fastapi_app.models` en lugar de importar directamente desde el paquete raíz
 para facilitar la reorganización y los imports internos de FastAPI.
 """
-from models import (
+from app.models import (
     db,
     Usuario,
     Mesa,
