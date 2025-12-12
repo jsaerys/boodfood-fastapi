@@ -1,5 +1,5 @@
 from decimal import Decimal
-from models import db, PedidoItem
+from ..models import db, PedidoItem
 
 
 def add_or_update_pedido_item(pedido_id, menu_item, cantidad, precio_unitario):
